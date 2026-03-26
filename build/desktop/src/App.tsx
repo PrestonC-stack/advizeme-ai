@@ -37,8 +37,8 @@ const severityRank: Record<AlertItem["severity"], number> = {
 };
 
 export default function App() {
-  const [tickets, setTickets] = useState<TicketSummary[]>(starterTickets);
-  const [alerts, setAlerts] = useState<AlertItem[]>(starterAlerts);
+  const [tickets, setTickets] = useState<TicketSummary[]>(hasSupabaseConfig() ? [] : starterTickets);
+  const [alerts, setAlerts] = useState<AlertItem[]>(hasSupabaseConfig() ? [] : starterAlerts);
   const [draft, setDraft] = useState<EventDraft>(defaultDraft);
   const [selectedLocation, setSelectedLocation] = useState<"All" | TicketSummary["location"]>("All");
   const [connectionMessage, setConnectionMessage] = useState(
@@ -59,6 +59,12 @@ export default function App() {
     }
 
     void refreshLiveData(client);
+
+    const interval = window.setInterval(() => {
+      void refreshLiveData(client);
+    }, 15000);
+
+    return () => window.clearInterval(interval);
   }, []);
 
   const visibleTickets = useMemo(() => {
@@ -82,6 +88,9 @@ export default function App() {
       { P1: 0, P2: 0, P3: 0, P4: 0 }
     );
   }, [tickets]);
+
+  const opportunityFeed = useMemo(() => buildOpportunityFeed(tickets, alerts), [tickets, alerts]);
+  const recentActivity = useMemo(() => tickets.slice(0, 6), [tickets]);
 
   const handleFieldChange = <K extends keyof EventDraft>(key: K, value: EventDraft[K]) => {
     setDraft((current) => ({ ...current, [key]: value }));
@@ -390,22 +399,21 @@ export default function App() {
     ]);
 
     if (ticketResult.error || alertResult.error) {
-      setConnectionMessage("Supabase connected, but no live rows yet or query failed");
+      setConnectionMessage("Supabase connected, but query failed");
       return;
     }
 
     const liveTickets = (ticketResult.data as TicketCurrentStateRow[]).map(mapTicketRow);
     const liveAlerts = (alertResult.data as OpenTicketAlertRow[]).map(mapAlertRow);
 
-    if (liveTickets.length > 0) {
-      setTickets(liveTickets);
-    }
+    setTickets(liveTickets);
+    setAlerts(liveAlerts);
 
-    if (liveAlerts.length > 0) {
-      setAlerts(liveAlerts);
+    if (liveTickets.length === 0 && liveAlerts.length === 0) {
+      setConnectionMessage("Supabase connected, waiting for live webhook or import data");
+    } else {
+      setConnectionMessage("Supabase connected");
     }
-
-    setConnectionMessage("Supabase connected");
   };
 
   return (
@@ -430,19 +438,77 @@ export default function App() {
 
       <section className="panel">
         <div className="panel-header">
+          <h2>AI Opportunity Feed</h2>
+          <span>low hanging fruit first</span>
+        </div>
+        <div className="opportunity-list">
+          {opportunityFeed.length > 0 ? (
+            opportunityFeed.map((item) => (
+              <article key={item.id} className={`opportunity-card severity-${item.severity}`}>
+                <div className="alert-row">
+                  <strong>{item.title}</strong>
+                  <span>{item.score}</span>
+                </div>
+                <p>{item.detail}</p>
+              </article>
+            ))
+          ) : (
+            <article className="empty-card">
+              <strong>No opportunities scored yet</strong>
+              <p>As live tickets and alerts build up, AdvizeMe will rank the easiest next wins here.</p>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="panel">
+        <div className="panel-header">
           <h2>Alert Feed</h2>
           <span>{sortedAlerts.length} active</span>
         </div>
         <div className="alert-list">
-          {sortedAlerts.map((alert) => (
-            <article key={alert.id} className={`alert-card severity-${alert.severity}`}>
-              <div className="alert-row">
-                <strong>{alert.title}</strong>
-                <span>{alert.severity}</span>
-              </div>
-              <p>{alert.detail}</p>
+          {sortedAlerts.length > 0 ? (
+            sortedAlerts.map((alert) => (
+              <article key={alert.id} className={`alert-card severity-${alert.severity}`}>
+                <div className="alert-row">
+                  <strong>{alert.title}</strong>
+                  <span>{alert.severity}</span>
+                </div>
+                <p>{alert.detail}</p>
+              </article>
+            ))
+          ) : (
+            <article className="empty-card">
+              <strong>No live alerts yet</strong>
+              <p>AutoFlow webhooks, imports, and manual events will create alerts here.</p>
             </article>
-          ))}
+          )}
+        </div>
+      </section>
+
+      <section className="panel">
+        <div className="panel-header">
+          <h2>Recent Live Changes</h2>
+          <span>{recentActivity.length} shown</span>
+        </div>
+        <div className="activity-list">
+          {recentActivity.length > 0 ? (
+            recentActivity.map((ticket) => (
+              <article key={`${ticket.id}-activity`} className="activity-card">
+                <div className="alert-row">
+                  <strong>{ticket.roNumber} · {ticket.customerName}</strong>
+                  <span>{ticket.lastActivity}</span>
+                </div>
+                <p>{ticket.status} · {ticket.location} · {ticket.source}</p>
+                <p>{ticket.nextAction}</p>
+              </article>
+            ))
+          ) : (
+            <article className="empty-card">
+              <strong>No live changes yet</strong>
+              <p>Webhook-driven ticket movement and imports will show up here as soon as they land.</p>
+            </article>
+          )}
         </div>
       </section>
 
@@ -581,31 +647,38 @@ export default function App() {
           </select>
         </div>
         <div className="ticket-list">
-          {visibleTickets.map((ticket) => (
-            <article key={ticket.id} className="ticket-card">
-              <div className="ticket-header">
-                <div>
-                  <p className="ticket-ro">{ticket.roNumber}</p>
-                  <h3>{ticket.customerName}</h3>
+          {visibleTickets.length > 0 ? (
+            visibleTickets.map((ticket) => (
+              <article key={ticket.id} className="ticket-card">
+                <div className="ticket-header">
+                  <div>
+                    <p className="ticket-ro">{ticket.roNumber}</p>
+                    <h3>{ticket.customerName}</h3>
+                  </div>
+                  <span className={`priority-chip priority-${ticket.priority.toLowerCase()}`}>
+                    {ticket.priority}
+                  </span>
                 </div>
-                <span className={`priority-chip priority-${ticket.priority.toLowerCase()}`}>
-                  {ticket.priority}
-                </span>
-              </div>
-              <p className="ticket-vehicle">{ticket.vehicleLabel}</p>
-              <div className="ticket-meta">
-                <span>{ticket.location}</span>
-                <span>{ticket.source}</span>
-                <span>{ticket.status}</span>
-              </div>
-              <div className="ticket-meta">
-                <span>Advisor: {ticket.advisor}</span>
-                <span>Tech: {ticket.technician}</span>
-              </div>
-              <p className="ticket-next">{ticket.nextAction}</p>
-              <p className="ticket-last">Last activity: {ticket.lastActivity}</p>
+                <p className="ticket-vehicle">{ticket.vehicleLabel}</p>
+                <div className="ticket-meta">
+                  <span>{ticket.location}</span>
+                  <span>{ticket.source}</span>
+                  <span>{ticket.status}</span>
+                </div>
+                <div className="ticket-meta">
+                  <span>Advisor: {ticket.advisor}</span>
+                  <span>Tech: {ticket.technician}</span>
+                </div>
+                <p className="ticket-next">{ticket.nextAction}</p>
+                <p className="ticket-last">Last activity: {ticket.lastActivity}</p>
+              </article>
+            ))
+          ) : (
+            <article className="empty-card">
+              <strong>No live tickets yet</strong>
+              <p>Import Tekmetric text, add a manual event, or wait for AutoFlow webhook events to normalize into tickets.</p>
             </article>
-          ))}
+          )}
         </div>
       </section>
     </div>
@@ -740,6 +813,64 @@ function isLongAgingRow(value: string | number | boolean | null | undefined): bo
   const days = dayMatch ? Number(dayMatch[1]) : 0;
   const hours = hourMatch ? Number(hourMatch[1]) : 0;
   return days >= 3 || (days === 0 && hours >= 8);
+}
+
+function buildOpportunityFeed(tickets: TicketSummary[], alerts: AlertItem[]) {
+  const items = tickets.map((ticket) => {
+    const relatedAlerts = alerts.filter((alert) => alert.ticketId === ticket.id);
+    let score = 25;
+    let title = `${ticket.roNumber} needs review`;
+    let detail = `${ticket.customerName} · ${ticket.vehicleLabel}`;
+    let severity: AlertItem["severity"] = "low";
+
+    if (ticket.priority === "P1") {
+      score += 45;
+      severity = "critical";
+      title = `${ticket.roNumber} is top priority`;
+      detail = `P1 ticket for ${ticket.customerName}. Move the next action now: ${ticket.nextAction}`;
+    }
+
+    if (ticket.status.toLowerCase().includes("advisor estimate")) {
+      score += 30;
+      severity = severity === "critical" ? severity : "high";
+      title = `${ticket.roNumber} is low-hanging fruit`;
+      detail = `Advisor Estimate status usually means an approval conversation is close. ${ticket.nextAction}`;
+    }
+
+    if (ticket.status.toLowerCase().includes("waiting approval")) {
+      score += 28;
+      severity = severity === "critical" ? severity : "high";
+      title = `${ticket.roNumber} needs customer contact`;
+      detail = `Waiting Approval is often a quick win if the customer has not been re-engaged yet.`;
+    }
+
+    if (ticket.status.toLowerCase().includes("technical advisor")) {
+      score += 20;
+      severity = severity === "low" ? "medium" : severity;
+      title = `${ticket.roNumber} may need estimate conversion`;
+      detail = `Technical Advisor status can become a sale quickly if the estimate gets built and presented.`;
+    }
+
+    if (relatedAlerts.length > 0) {
+      score += relatedAlerts.length * 12;
+      const highestSeverity = [...relatedAlerts].sort(
+        (a, b) => severityRank[a.severity] - severityRank[b.severity]
+      )[0];
+      severity = highestSeverity.severity;
+      title = highestSeverity.title;
+      detail = highestSeverity.detail;
+    }
+
+    return {
+      id: ticket.id,
+      score,
+      severity,
+      title,
+      detail
+    };
+  });
+
+  return items.sort((a, b) => b.score - a.score).slice(0, 8);
 }
 
 function StatCard({

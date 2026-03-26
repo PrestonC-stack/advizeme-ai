@@ -160,7 +160,9 @@ textarea {
 }
 
 .alert-list,
-.ticket-list {
+.ticket-list,
+.opportunity-list,
+.activity-list {
   display: grid;
   gap: 10px;
 }
@@ -169,11 +171,27 @@ textarea {
   padding: 12px;
 }
 
+.opportunity-card,
+.activity-card {
+  border-radius: 14px;
+  border: 1px solid rgba(140, 164, 196, 0.14);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 12px;
+  display: grid;
+  gap: 6px;
+}
+
 .alert-card p,
 .ticket-next,
 .ticket-vehicle,
 .ticket-ro {
   margin: 0;
+}
+
+.activity-card p,
+.opportunity-card p {
+  margin: 0;
+  color: #dce7f8;
 }
 
 .severity-critical {
@@ -258,6 +276,24 @@ textarea {
   padding: 12px;
   display: grid;
   gap: 6px;
+}
+
+.empty-card {
+  border-radius: 14px;
+  border: 1px dashed rgba(140, 164, 196, 0.22);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 16px;
+  display: grid;
+  gap: 6px;
+}
+
+.empty-card strong {
+  color: #f6f9ff;
+}
+
+.empty-card p {
+  margin: 0;
+  color: #9db0cf;
 }
 
 .import-preview-row {

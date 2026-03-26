@@ -63,6 +63,36 @@ type AutoflowPayload = {
   };
 };
 
+type AutoflowDviResponse = {
+  message?: string;
+  success?: number;
+  content?: Record<string, unknown> & {
+    invoice?: string;
+    additional_notes?: string;
+    customer_firstname?: string;
+    customer_lastname?: string;
+    service_advisor_name?: string;
+    dvis?: unknown[];
+  };
+};
+
+type DviAnalysis = {
+  qualityScore: number;
+  reviewStatus: "acceptable" | "needs_review" | "not_acceptable";
+  missingNotes: boolean;
+  missingPhotos: boolean;
+  missingMeasurements: boolean;
+  safetyFlag: boolean;
+  findingsSummary: string;
+  metrics: {
+    noteCount: number;
+    photoCount: number;
+    measurementCount: number;
+    recommendationCount: number;
+    itemCount: number;
+  };
+};
+
 Deno.serve(async (req) => {
   if (req.method !== "POST") {
     return json({ ok: false, error: "Method not allowed" }, 405);
@@ -221,6 +251,95 @@ async function normalizeAutoflowEvent(
     return { ok: true, note: `Normalized status_update for RO ${invoice}` };
   }
 
+  if (eventType === "dvi_signoff" || eventType === "dvi_signoff_update") {
+    const signoffType = eventType === "dvi_signoff" ? "first signoff" : "updated signoff";
+
+    await supabase.from("ticket_events").insert({
+      ticket_id: ticketRes.data.id,
+      source_id: sourceRes.data.id,
+      event_type: eventType,
+      event_at: eventAt,
+      actor_staff_id: techRes.data?.id ?? advisorRes.data?.id ?? null,
+      event_value: payload.event?.callback_endpoint ?? signoffType,
+      payload
+    });
+
+    const dviFetch = await fetchAutoflowDvi(payload, invoice);
+    if (!dviFetch.ok || !dviFetch.data?.content) {
+      await upsertOpenAlert(supabase, {
+        ticketId: ticketRes.data.id,
+        alertType: "dvi_fetch_failed",
+        severity: "medium",
+        title: `${invoice} DVI fetch failed`,
+        detail: dviFetch.note ?? "AutoFlow DVI signoff arrived, but the full DVI could not be fetched."
+      });
+
+      return { ok: true, note: `Stored ${eventType} for RO ${invoice}; DVI fetch failed` };
+    }
+
+    const analysis = analyzeDviContent(dviFetch.data.content);
+
+    await supabase.from("dvi_reviews").insert({
+      ticket_id: ticketRes.data.id,
+      source_id: sourceRes.data.id,
+      review_status: analysis.reviewStatus,
+      quality_score: analysis.qualityScore,
+      missing_notes: analysis.missingNotes,
+      missing_photos: analysis.missingPhotos,
+      missing_measurements: analysis.missingMeasurements,
+      safety_flag: analysis.safetyFlag,
+      findings_summary: analysis.findingsSummary,
+      reviewer_note: JSON.stringify({
+        fetched_at: new Date().toISOString(),
+        callback_endpoint: payload.event?.callback_endpoint ?? null,
+        api_source: dviFetch.url ?? null,
+        metrics: analysis.metrics,
+        invoice
+      })
+    });
+
+    await supabase.from("ticket_events").insert({
+      ticket_id: ticketRes.data.id,
+      source_id: sourceRes.data.id,
+      event_type: "dvi_reviewed",
+      event_at: new Date().toISOString(),
+      actor_staff_id: null,
+      event_value: analysis.reviewStatus,
+      payload: {
+        autoflow_event_type: eventType,
+        analysis,
+        dvi: dviFetch.data.content
+      }
+    });
+
+    if (analysis.reviewStatus !== "acceptable") {
+      await upsertOpenAlert(supabase, {
+        ticketId: ticketRes.data.id,
+        alertType: "dvi_quality_review",
+        severity: analysis.reviewStatus === "not_acceptable" ? "high" : "medium",
+        title: `${invoice} DVI needs critique`,
+        detail: analysis.findingsSummary
+      });
+    } else {
+      await resolveAlertIfOpen(supabase, ticketRes.data.id, "dvi_quality_review");
+    }
+
+    if (analysis.metrics.recommendationCount > 0) {
+      await upsertOpenAlert(supabase, {
+        ticketId: ticketRes.data.id,
+        alertType: "dvi_sales_opportunity",
+        severity: "medium",
+        title: `${invoice} has low-hanging fruit`,
+        detail: `${analysis.metrics.recommendationCount} recommendation signals found in the DVI.`
+      });
+    }
+
+    return {
+      ok: true,
+      note: `Fetched and reviewed DVI for RO ${invoice} (${analysis.reviewStatus}, score ${analysis.qualityScore})`
+    };
+  }
+
   if (eventType === "dvi_sent") {
     const sendMethod = payload.event?.send_method ?? "unknown";
     const recipient = payload.event?.recipient_email ?? payload.event?.recipient_phone ?? null;
@@ -244,6 +363,28 @@ async function normalizeAutoflowEvent(
     });
 
     return { ok: true, note: `Normalized dvi_sent for RO ${invoice}` };
+  }
+
+  if (eventType === "dvi_viewed") {
+    await supabase.from("ticket_events").insert({
+      ticket_id: ticketRes.data.id,
+      source_id: sourceRes.data.id,
+      event_type: "dvi_viewed",
+      event_at: eventAt,
+      actor_staff_id: null,
+      event_value: payload.event?.callback_endpoint ?? "viewed",
+      payload
+    });
+
+    await upsertOpenAlert(supabase, {
+      ticketId: ticketRes.data.id,
+      alertType: "awaiting_customer_decision",
+      severity: "medium",
+      title: `${invoice} DVI viewed`,
+      detail: "Customer opened the DVI. This is a good time for advisor follow-up."
+    });
+
+    return { ok: true, note: `Normalized dvi_viewed for RO ${invoice}` };
   }
 
   if (eventType === "message_status") {
@@ -273,6 +414,100 @@ async function normalizeAutoflowEvent(
     }
 
     return { ok: true, note: `Normalized message_status for RO ${invoice}` };
+  }
+
+  if (eventType === "inbound_message") {
+    await supabase.from("ticket_events").insert({
+      ticket_id: ticketRes.data.id,
+      source_id: sourceRes.data.id,
+      event_type: "inbound_message",
+      event_at: eventAt,
+      actor_staff_id: null,
+      event_value: payload.message?.message ?? "inbound_message",
+      payload
+    });
+
+    await resolveAlertIfOpen(supabase, ticketRes.data.id, "customer_update_overdue");
+    await resolveAlertIfOpen(supabase, ticketRes.data.id, "awaiting_follow_up");
+
+    await upsertOpenAlert(supabase, {
+      ticketId: ticketRes.data.id,
+      alertType: "customer_reply_received",
+      severity: "medium",
+      title: `${invoice} customer replied`,
+      detail: payload.message?.message ?? "Inbound message received."
+    });
+
+    return { ok: true, note: `Normalized inbound_message for RO ${invoice}` };
+  }
+
+  if (eventType === "ro_approval") {
+    await supabase.from("ticket_events").insert({
+      ticket_id: ticketRes.data.id,
+      source_id: sourceRes.data.id,
+      event_type: "ro_approval",
+      event_at: eventAt,
+      actor_staff_id: null,
+      event_value: "approved",
+      payload
+    });
+
+    await resolveAlertIfOpen(supabase, ticketRes.data.id, "awaiting_customer_decision");
+    await resolveAlertIfOpen(supabase, ticketRes.data.id, "awaiting_follow_up");
+
+    await upsertOpenAlert(supabase, {
+      ticketId: ticketRes.data.id,
+      alertType: "approved_work_ready",
+      severity: "medium",
+      title: `${invoice} approved by customer`,
+      detail: "Customer approved work. Move the ticket forward promptly."
+    });
+
+    return { ok: true, note: `Normalized ro_approval for RO ${invoice}` };
+  }
+
+  if (eventType === "appointment_create" || eventType === "appointment_update" || eventType === "appointment_confirmed") {
+    await supabase.from("ticket_events").insert({
+      ticket_id: ticketRes.data.id,
+      source_id: sourceRes.data.id,
+      event_type: eventType,
+      event_at: eventAt,
+      actor_staff_id: advisorRes.data?.id ?? null,
+      event_value: payload.event?.timestamp ?? eventType,
+      payload
+    });
+
+    await upsertOpenAlert(supabase, {
+      ticketId: ticketRes.data.id,
+      alertType: "appointment_change",
+      severity: "low",
+      title: `${invoice} appointment updated`,
+      detail: payload.text ?? `AutoFlow appointment event: ${eventType}.`
+    });
+
+    return { ok: true, note: `Normalized ${eventType} for RO ${invoice}` };
+  }
+
+  if (eventType === "wo_signoff") {
+    await supabase.from("ticket_events").insert({
+      ticket_id: ticketRes.data.id,
+      source_id: sourceRes.data.id,
+      event_type: "wo_signoff",
+      event_at: eventAt,
+      actor_staff_id: techRes.data?.id ?? null,
+      event_value: "signed_off",
+      payload
+    });
+
+    await upsertOpenAlert(supabase, {
+      ticketId: ticketRes.data.id,
+      alertType: "ready_for_advisor_review",
+      severity: "medium",
+      title: `${invoice} work order signed off`,
+      detail: "Technician signed off the work order. Advisor review may be needed."
+    });
+
+    return { ok: true, note: `Normalized wo_signoff for RO ${invoice}` };
   }
 
   await supabase.from("ticket_events").insert({
@@ -365,4 +600,167 @@ async function resolveAlertIfOpen(
     .eq("ticket_id", ticketId)
     .eq("alert_type", alertType)
     .eq("status", "open");
+}
+
+function getAutoflowAuthHeader() {
+  const apiKey = Deno.env.get("AUTOFLOW_API_KEY");
+  const apiPassword = Deno.env.get("AUTOFLOW_API_PASSWORD");
+
+  if (!apiKey || !apiPassword) {
+    return null;
+  }
+
+  return `Basic ${btoa(`${apiKey}:${apiPassword}`)}`;
+}
+
+async function fetchAutoflowDvi(payload: AutoflowPayload, invoice: string) {
+  const authHeader = getAutoflowAuthHeader();
+  const baseUrl = (Deno.env.get("AUTOFLOW_BASE_URL") ?? "https://integration.autotext.me").replace(/\/$/, "");
+  const domainBase = payload.shop?.domain ? `https://${payload.shop.domain}` : null;
+  const callbackEndpoint = payload.event?.callback_endpoint;
+
+  if (!authHeader) {
+    return { ok: false as const, note: "Missing AutoFlow API secrets" };
+  }
+
+  const candidateUrls = [
+    callbackEndpoint && domainBase ? `${domainBase}${callbackEndpoint}` : null,
+    callbackEndpoint ? `${baseUrl}${callbackEndpoint}` : null,
+    `${baseUrl}/api/v1/dvi/${invoice}`,
+    domainBase ? `${domainBase}/api/v1/dvi/${invoice}` : null
+  ].filter((value): value is string => Boolean(value));
+
+  let lastError = "No DVI URL candidates";
+
+  for (const url of candidateUrls) {
+    try {
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          accept: "application/json",
+          authorization: authHeader,
+          "content-type": "application/json"
+        }
+      });
+
+      if (!response.ok) {
+        lastError = `HTTP ${response.status} from ${url}`;
+        continue;
+      }
+
+      const data = (await response.json()) as AutoflowDviResponse;
+      if (data?.content) {
+        return { ok: true as const, data, url };
+      }
+
+      lastError = `Empty DVI content from ${url}`;
+    } catch (error) {
+      lastError = `${url}: ${error instanceof Error ? error.message : String(error)}`;
+    }
+  }
+
+  return { ok: false as const, note: lastError };
+}
+
+function analyzeDviContent(content: Record<string, unknown>): DviAnalysis {
+  const metrics = {
+    noteCount: 0,
+    photoCount: 0,
+    measurementCount: 0,
+    recommendationCount: 0,
+    itemCount: 0
+  };
+
+  const walk = (value: unknown, parentKey = "") => {
+    if (Array.isArray(value)) {
+      if (parentKey.toLowerCase() === "dvis") {
+        metrics.itemCount += value.length;
+      }
+
+      for (const item of value) {
+        walk(item, parentKey);
+      }
+      return;
+    }
+
+    if (value && typeof value === "object") {
+      const entries = Object.entries(value as Record<string, unknown>);
+      if (entries.length > 0 && /(item|inspection|finding|recommend|condition|result)/i.test(parentKey)) {
+        metrics.itemCount += 1;
+      }
+
+      for (const [key, child] of entries) {
+        const normalized = key.toLowerCase();
+        if (typeof child === "string") {
+          const text = child.trim();
+          if (!text) {
+            continue;
+          }
+
+          if (/(note|comment|description|details|cause|correction|finding|observ)/i.test(normalized) && !/^https?:\/\//i.test(text)) {
+            metrics.noteCount += 1;
+          }
+
+          if (/(photo|image|picture)/i.test(normalized) && /^https?:\/\//i.test(text)) {
+            metrics.photoCount += 1;
+          }
+
+          if (/(measure|reading|thickness|pressure|voltage|spec|remaining|depth)/i.test(normalized)) {
+            metrics.measurementCount += 1;
+          }
+
+          if (/(recommend|action|repair|replace|service|attention|urgent|immediate)/i.test(normalized) || /(recommend|repair|replace|service advised|attention needed)/i.test(text)) {
+            metrics.recommendationCount += 1;
+          }
+        } else if (typeof child === "number") {
+          if (/(measure|reading|thickness|pressure|voltage|spec|remaining|depth)/i.test(normalized)) {
+            metrics.measurementCount += 1;
+          }
+        }
+
+        walk(child, key);
+      }
+    }
+  };
+
+  walk(content);
+
+  const additionalNotes = typeof content.additional_notes === "string" && content.additional_notes.trim().length > 0 ? 1 : 0;
+  metrics.noteCount += additionalNotes;
+
+  const safetyFlag = JSON.stringify(content).toLowerCase().includes("safety");
+  const missingNotes = metrics.noteCount === 0;
+  const missingPhotos = metrics.photoCount === 0;
+  const missingMeasurements = metrics.measurementCount === 0;
+
+  let qualityScore = 100;
+  if (missingNotes) qualityScore -= 30;
+  if (missingPhotos) qualityScore -= 25;
+  if (missingMeasurements) qualityScore -= 15;
+  if (metrics.itemCount === 0) qualityScore -= 10;
+  if (metrics.recommendationCount === 0) qualityScore -= 10;
+  if (safetyFlag) qualityScore += 5;
+  qualityScore = Math.max(0, Math.min(100, qualityScore));
+
+  const reviewStatus =
+    qualityScore >= 80 ? "acceptable" : qualityScore >= 60 ? "needs_review" : "not_acceptable";
+
+  const notes: string[] = [];
+  if (missingNotes) notes.push("missing technician notes");
+  if (missingPhotos) notes.push("missing supporting photos");
+  if (missingMeasurements) notes.push("missing measurable evidence");
+  if (metrics.recommendationCount > 0) notes.push(`${metrics.recommendationCount} recommendation signals found`);
+  if (metrics.itemCount > 0) notes.push(`${metrics.itemCount} inspection item groups detected`);
+  if (safetyFlag) notes.push("contains safety language");
+
+  return {
+    qualityScore,
+    reviewStatus,
+    missingNotes,
+    missingPhotos,
+    missingMeasurements,
+    safetyFlag,
+    findingsSummary: notes.length > 0 ? notes.join("; ") : "DVI analyzed with no strong signals detected.",
+    metrics
+  };
 }
