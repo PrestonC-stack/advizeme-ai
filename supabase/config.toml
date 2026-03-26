@@ -1,0 +1,2 @@
+[functions.autoflow-webhook]
+verify_jwt = false
