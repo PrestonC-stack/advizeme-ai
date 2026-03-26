@@ -1,0 +1,376 @@
+Project Overview
+
+Internal shop execution system for Callahan Auto & Diesel focused on improving inspection quality (DVI), estimate accuracy, technician documentation, and advisor decision-making. The system is intended to standardize how vehicle findings are captured, translated into estimates, and prioritized for repair, while reducing missed items, poor communication, and profit leakage.
+
+Primary users:
+
+Technicians (data input, inspections, diagnostics)
+Advisors (estimate building, sales, prioritization)
+Shop owner (oversight, audit, profitability control)
+
+This project acts as the operational intelligence layer between DVI → Estimate → Customer approval → Repair execution.
+
+Core Objective
+
+Create a system that:
+
+Ensures every inspection result is properly documented, justified, and converted into a complete, sellable estimate
+Provides real-time coaching and validation for technicians and advisors
+Eliminates missed work, poor documentation, and inconsistent processes
+Improves profitability, clarity, and workflow efficiency across the shop
+Business Context
+
+Business:
+
+Callahan Auto & Diesel
+Multi-location operation (Country Club, Main Street, Apache)
+Mix of light-duty, diesel, fleet, and government work
+
+Team Structure:
+
+Preston = senior diagnostic lead
+Mitch = CEASR (oversees tech flow, DVI quality, staging)
+Bob = service advisor (builds estimates, sells work)
+Techs (TC, Luis, etc.)
+
+Systems in use:
+
+DVI system (inspection reports)
+Estimate/invoicing platform (likely Shopmonkey or similar)
+Trello (tech logs / notes)
+Google Workspace (docs, communication)
+Manual processes for prioritization and review
+
+Operational reality:
+
+~25 active vehicles needing prioritization
+High variability in technician skill and documentation quality
+Advisor depends heavily on tech notes to build estimates
+Frequent gaps between inspection findings and billed work
+Problems We Are Trying To Solve
+Incomplete DVIs (missing photos, weak notes, unclear findings)
+Findings not converting into estimates (lost revenue)
+Poor technician wording → hard for advisor to sell
+Advisors missing items or underbuilding estimates
+Lack of standardized inspection depth
+No structured prioritization system for jobs
+Weak linkage between:
+Concern → inspection → findings → estimate → repair
+Inconsistent labor/parts capture from tech notes
+Time tracking inconsistencies (Trello vs invoice)
+Missed upsells and future work opportunities
+Poor communication between tech → advisor → customer
+No auditing system to catch missing items before estimate is finalized
+Vision For The Solution
+
+A structured, semi-automated workflow system that:
+
+Forces high-quality DVI input
+Translates findings into structured estimate-ready data
+Audits estimates against inspections
+Provides real-time coaching to techs and advisors
+Prioritizes jobs intelligently
+Tracks technician time and parts usage accurately
+
+End state:
+
+Every vehicle has a clean, complete, professional inspection
+Every valid finding is either:
+Sold
+Deferred with reason
+Flagged for follow-up
+Advisors are guided, not guessing
+Owner has visibility into gaps and profitability
+Current Workflow
+Vehicle arrives
+Tech performs DVI (quality varies heavily)
+May lack photos
+May have weak notes
+Tech logs work in Trello (inconsistent detail)
+Advisor (Bob) reviews DVI
+Interprets tech notes
+Builds estimate manually
+Estimate sent to customer
+Work approved/declined
+Repair performed
+Final invoice built
+
+Weak points:
+
+Tech → Advisor handoff unclear
+Missing findings not caught
+No audit step between DVI and estimate
+Time/parts not consistently transferred to invoice
+Prioritization is manual and inconsistent
+Desired Future Workflow
+Vehicle intake + concern logged
+Technician performs structured DVI
+Required fields enforced
+Photos + notes validated
+System extracts findings:
+Safety
+Immediate
+Maintenance
+Future
+System generates:
+Estimate suggestions
+Missing item alerts
+Advisor reviews guided estimate
+Coaching prompts
+Profit checks
+Estimate sent
+Job prioritized based on logic
+Repair executed
+Final audit before invoice close
+Data logged for performance metrics
+Key Features Discussed
+DVI Intelligence Layer
+Required photo validation
+Required note quality (no vague wording)
+Categorization:
+Safety
+Immediate
+Maintenance
+Future
+Estimate Builder Support
+Auto-suggest jobs from findings
+Flag missing items
+Match findings → line items
+Audit System
+Compare DVI vs estimate
+Highlight:
+Missing labor
+Missing parts
+Unbilled findings
+Technician Time & Parts Extraction
+Parse Trello logs into:
+Labor hours (to tenth)
+Parts list
+Convert into invoice-ready format
+Priority System
+Job ranking logic (see section below)
+Advisor Coaching Engine
+Prompts:
+“Did you include…”
+“This finding should be quoted as…”
+“This is a safety item—prioritize”
+Metrics Tracking
+GP%
+Labor vs parts ratio
+Missed opportunities
+Technician efficiency
+Must-Have Requirements
+DVI → Estimate linkage (non-negotiable)
+Mandatory documentation standards (photos + notes)
+Estimate audit before finalization
+Technician time tracking integration
+Clear prioritization system
+Advisor guidance prompts
+Ability to extract parts/labor from tech notes
+Profitability visibility (GP%)
+Nice-To-Have Ideas
+Mobile app for techs
+AI-generated customer explanations
+Voice-to-text for tech notes
+Photo-based issue detection
+Integration with AdviseMe.ai ecosystem
+Predictive maintenance suggestions
+Training mode for new techs
+Priority Logic
+
+Jobs should be prioritized based on:
+
+Safety
+Brakes, steering, leaks, structural issues
+Customer concern
+Original complaint always top tier
+Reliability
+No-start, drivability, overheating
+Revenue impact
+High-value jobs not stalled
+Workflow blockage
+Vehicles tying up space
+Age/stall time
+Jobs sitting too long
+Ease of completion
+Quick wins to maintain flow
+DVI / Inspection Standards
+
+Good DVI includes:
+
+Clear condition statement
+NOT: “bad”
+YES: “Front brake pads at 2mm, below spec”
+Photos:
+Close-up + context shot
+Measurement values where applicable
+Cause + effect explained
+Recommendation tied to condition
+
+Structure:
+
+What is wrong
+Why it matters
+What should be done
+Estimate / Audit Standards
+
+Good estimate:
+
+Every finding accounted for:
+Sold
+Deferred
+Not applicable (with reason)
+Labor matches scope
+Parts complete (no missing components)
+No vague line items
+Proper tax handling (8.3% on parts/shop supplies)
+
+Audit flags:
+
+Missing labor for known tasks
+Parts mentioned but not billed
+DVI items not quoted
+Underpriced labor
+Advisor Guidance / Coaching Logic
+
+System should prompt:
+
+“This finding requires a quote—missing from estimate”
+“Safety item—should be prioritized”
+“Labor appears low for this repair”
+“Parts list incomplete based on job scope”
+“Customer concern not addressed in estimate”
+
+Goal:
+
+Remove guesswork
+Standardize decision-making
+Data Sources And Systems
+DVI platform (inspection data)
+Trello (technician logs)
+Estimate/invoice system
+Google Workspace (docs, communication)
+Internal SOPs
+Technician notes (unstructured input)
+Automation Opportunities
+Immediate
+Parse Trello logs → labor + parts
+DVI → estimate comparison
+Missing item detection
+Mid-Term
+Auto-generate estimate drafts
+Priority scoring engine
+Advisor coaching prompts
+Long-Term
+Full AI assistant (AdviseMe.ai integration)
+Predictive diagnostics
+Cross-job learning system
+Short-Term Plan
+Build DVI → Estimate audit tool
+Build Trello log parser
+Define DVI quality checklist enforcement
+Create priority list system for daily use
+Mid-Term Plan
+Integrate estimate builder suggestions
+Implement advisor coaching layer
+Build dashboard for job tracking + GP%
+Long-Term Vision
+Fully integrated shop operating system
+AI-assisted diagnostics + estimating
+Scalable system usable across multiple shops
+Foundation for AdviseMe.ai product
+Important Prompts, Instructions, Or Frameworks
+Diagnostic Structure (used repeatedly)
+Verify inputs
+Test step-by-step
+Provide expected values
+Confirm cause
+Define next action
+DVI Writing Framework
+Condition
+Evidence
+Impact
+Recommendation
+Estimate Audit Logic
+Every finding must map to:
+Line item OR documented deferment
+Good Examples
+Good Tech Note
+“Rear differential leaking at pinion seal, fluid present on housing and ground. Recommend replace seal and refill fluid.”
+Good Workflow
+Tech logs detailed notes → system extracts → advisor builds complete estimate → audit confirms no gaps
+Bad Examples / Failure Patterns
+“Needs brakes” (no measurement, no photos)
+Missing parts in estimate
+Labor underbilled vs actual work
+DVI findings ignored in estimate
+Trello logs not reflected in invoice
+Decisions Already Made
+DVI quality must be enforced
+Estimate must map to inspection
+Advisor needs system guidance
+Trello logs are a valid data source
+Profitability tracking (GP%) is critical
+Open Questions
+Which DVI platform is primary?
+Which estimating system API is available?
+How automated vs manual should audit be initially?
+Where will this system live (web app, internal tool, GPT layer)?
+Assumptions
+Techs will continue using Trello for logs
+Advisors will remain primary estimate builders
+Existing systems will not be replaced immediately
+Incremental integration preferred over full rebuild
+Recommended Next Steps For Codex
+Build Trello parser:
+Input: raw text
+Output: labor hours + parts list
+Build DVI → Estimate audit engine:
+Compare two datasets
+Output missing items
+Create priority scoring module
+Define DVI validation schema:
+Required fields
+Quality checks
+Build simple UI/dashboard:
+Job list
+Priority ranking
+Audit alerts
+Build-Relevant Details
+Entities
+Vehicle
+Job
+DVI item
+Estimate line item
+Technician log
+Parts
+Labor entry
+Key Fields
+Condition description
+Photos (required count)
+Severity (safety, maintenance, etc.)
+Labor hours
+Parts list
+GP%
+Logic Conditions
+If DVI item exists AND not in estimate → flag
+If labor < expected baseline → warn
+If safety item → auto-priority high
+Workflow States
+Intake
+Inspection complete
+Estimate draft
+Audit pending
+Sent to customer
+Approved
+In progress
+Complete
+UI Ideas
+Red/yellow/green flags for audit
+Priority score column
+“Missing items” panel
+“Advisor suggestions” sidebar
+Notifications
+Advisor alert when estimate incomplete
+Owner alert when GP below threshold
+Tech alert for poor DVI quality

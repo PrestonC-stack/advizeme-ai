@@ -1,0 +1,376 @@
+Project Overview
+
+A structured AI-driven system (AdvizMe.ai / “Callie”) designed to support and optimize automotive shop operations at Callahan Auto & Diesel. The system acts as an intelligent advisor for technicians and service advisors—analyzing inspections (DVIs), guiding estimates, prioritizing work, and improving communication, consistency, and profitability.
+
+Core problem: fragmented workflows, inconsistent inspections, missed sales opportunities, poor documentation, and lack of systemized decision-making in a multi-location, high-volume shop environment.
+
+Target users:
+
+Service Advisors (Bob)
+CEASR / Production Coordinator (Mitch)
+Technicians (TC, Luis, others)
+Owner/Diagnostic Lead (Preston)
+
+Why it matters:
+
+Direct impact on revenue, efficiency, and customer trust
+Reduces reliance on tribal knowledge
+Enables scalable, system-driven operations aligned with long-term goal of self-sustaining business
+Core Objective
+
+Build an AI-powered operational system that:
+
+Standardizes inspections, estimates, and workflow decisions
+Increases estimate accuracy, approval rates, and production flow
+Acts as a real-time advisor/coach for staff
+Reduces missed work, comebacks, and communication breakdowns
+Allows the business to scale without relying on constant owner oversight
+Business Context
+
+Business:
+
+Callahan Auto & Diesel (multi-location auto & diesel repair operation)
+Locations include Country Club, Main Street, Apache (fleet + U-Haul)
+
+Team roles:
+
+Preston: Owner, senior diagnostic lead
+Bob: Service Advisor (sales, estimates, scheduling)
+Mitch: CEASR (workflow control, DVI flow, staging, production oversight)
+Techs: TC, Luis, others
+
+Operational realities:
+
+~25+ vehicles in queue at times
+Daily morning meetings already in place
+Heavy reliance on DVIs (Digital Vehicle Inspections)
+ADP for HR/payroll, Google Workspace for operations
+High variability in technician skill and documentation quality
+
+Constraints:
+
+Fast-paced shop environment
+ADHD-driven leadership → needs structured, efficient systems
+Limited time → 2-hour nightly build windows
+Must integrate into real-world workflow, not disrupt it
+Problems We Are Trying To Solve
+
+Inspection / DVI issues:
+
+Incomplete inspections
+Missing photos or poor-quality photos
+Weak or unclear technician notes
+Lack of justification for recommendations
+
+Estimate issues:
+
+Missed line items
+Findings not converted into billable work
+Inconsistent estimate structure
+Advisors forced to “guess” or fill gaps
+
+Workflow issues:
+
+Vehicles not prioritized correctly
+Jobs stalling without visibility
+Poor handoffs between tech → Mitch → Bob
+No system enforcing next actions
+
+Communication breakdowns:
+
+Changes not retained by team
+Lack of clarity in instructions
+No consistent language or standards
+
+Revenue leakage:
+
+Missed upsells due to poor DVIs
+Incomplete estimates
+Lack of follow-up structure
+
+Operational risks:
+
+Comebacks due to missed issues
+Safety items not flagged properly
+Over-reliance on Preston for diagnostics
+Vision For The Solution
+
+An AI assistant (“Callie”) embedded into the workflow that:
+
+Reviews DVIs in real time
+Flags missing items, weak notes, or incomplete inspections
+Translates findings into structured estimate recommendations
+Prioritizes vehicles based on urgency, safety, and business impact
+Coaches advisors on how to present and close work
+Acts like a senior advisor/manager watching every job
+
+Experience:
+
+Fast, actionable feedback (not long reports)
+Clear next steps (“Add brake fluid leak diag line”, “Missing undercarriage photos”)
+Feels like a sharp shop foreman + business coach combined
+
+Outcomes:
+
+Higher estimate accuracy
+Increased ARO (average repair order)
+Faster throughput
+Reduced errors and comebacks
+Scalable operations
+Current Workflow
+Vehicle arrives
+Assigned to technician
+Technician performs inspection (DVI)
+Takes photos (inconsistent)
+Writes notes (often weak or incomplete)
+DVI submitted
+Mitch reviews / ensures flow
+Bob builds estimate
+Interprets DVI
+Fills in gaps manually
+Customer contacted
+Work approved or declined
+Vehicle either proceeds or stalls
+
+Weak points:
+
+Techs stop at surface-level findings
+Missing diagnostic steps
+Advisors guessing intent
+No enforcement of completeness
+No system for prioritization across 25+ vehicles
+Jobs stall without visibility
+Desired Future Workflow
+Tech performs inspection
+AI reviews DVI instantly:
+Flags missing photos, weak notes, incomplete checks
+Suggests additional inspections/tests
+Tech corrects/finishes DVI
+AI converts findings → structured estimate suggestions
+Mitch sees prioritized job list with AI scoring
+Bob receives:
+Clean, complete estimate draft
+Talking points and risk flags
+Customer contacted with confidence
+System tracks:
+Follow-ups
+Declined work
+Future opportunities
+
+Result:
+
+No incomplete DVIs reach advisor
+No estimate built from guesswork
+Clear priority across all vehicles
+Key Features Discussed
+DVI Analysis Engine
+Completeness scoring
+Photo requirement validation
+Note quality evaluation
+Missing inspection detection
+Estimate Builder Assistant
+Auto-suggest line items from findings
+Map symptoms → diagnostics → repair
+Flag missing billable work
+Priority System
+Safety-critical flags
+Stalled job detection
+High-value job prioritization
+Customer urgency
+Advisor Coaching
+Suggested wording for customer calls
+Risk framing (“safety concern”, “preventative”)
+Close strategy
+Workflow Tracking
+Job status visibility
+Bottleneck detection
+Follow-up tracking
+Knowledge Engine (Pass It Down)
+Real-world expertise ingestion
+Non-Googleable trade knowledge
+Continuous improvement loop
+Must-Have Requirements
+Enforces DVI completeness before estimate stage
+Maps every finding to a recommended action
+Flags safety issues clearly
+Provides actionable (not verbose) output
+Integrates with real shop workflow (no extra friction)
+Works fast (seconds, not minutes)
+Improves estimate accuracy and revenue immediately
+Nice-To-Have Ideas
+Photo-based analysis (detect leaks, wear, etc.)
+Voice-to-DVI input for techs
+Customer-facing explanations
+Mobile app integration
+Gamification of technician performance
+Training mode for new techs
+Integration with EVIT student programs
+Priority Logic
+
+Vehicles prioritized by:
+
+Safety issues (brakes, leaks, steering, etc.)
+Reliability risks (vehicle may fail soon)
+Customer wait time / expectations
+High-value jobs (revenue impact)
+Stalled jobs (no progress)
+Follow-ups / previously declined work
+
+System should:
+
+Flag “DO NOT DELAY” items
+Surface hidden high-value opportunities
+Prevent low-value work from blocking high-impact jobs
+DVI / Inspection Standards
+
+“Good” DVI includes:
+
+Complete system coverage (no skipped sections)
+Clear, specific notes (not vague)
+Cause + effect + recommendation
+High-quality photos:
+Wide shot + close-up
+Context + detail
+Justification for every recommendation
+
+Bad patterns:
+
+“Needs brakes” (no detail)
+No photos
+No explanation of risk
+Missing related systems (e.g., leak but no source investigation)
+Estimate / Audit Standards
+
+Good estimate:
+
+Every DVI finding mapped to a line item
+Includes diagnostic steps where needed
+No missing labor for identified issues
+Structured logically (diag → repair → parts)
+
+System should flag:
+
+Findings without estimate items
+Estimates without supporting DVI evidence
+Missing diagnostics
+Underbuilt jobs
+Advisor Guidance / Coaching Logic
+
+System should:
+
+Suggest how to present findings
+Highlight urgency level (safety vs maintenance)
+Provide closing strategy
+Remind of:
+Follow-ups
+Deferred work
+Upsell opportunities
+
+Tone:
+
+Confident
+Clear
+Customer-focused
+Data Sources And Systems
+DVI platform (inspection data, photos, notes)
+Shop workflow system (job status, queue)
+Google Workspace (docs, communication)
+ADP (HR, not core but context)
+Future: APIs for integrations
+
+Inputs:
+
+Technician notes
+Photos
+Vehicle data
+Job status
+Automation Opportunities
+Immediate
+DVI completeness checker
+Estimate gap detection
+Priority scoring
+Mid-Term
+Auto-estimate generation
+Advisor scripting
+Follow-up automation
+Long-Term
+Photo-based diagnostics
+Predictive maintenance insights
+Full workflow orchestration
+Knowledge engine integration
+Short-Term Plan
+Build DVI analyzer:
+Detect missing photos
+Detect weak notes
+Flag incomplete inspections
+Build estimate gap checker:
+Compare DVI → estimate
+Create simple priority scoring model
+Mid-Term Plan
+Auto-generate estimate drafts
+Advisor coaching outputs
+Integrate with job queue
+Add follow-up tracking
+Long-Term Vision
+Full AdvizMe.ai platform:
+Internal shop OS
+Customer-facing app
+AI advisor ecosystem
+Scalable across multiple shops
+Knowledge engine powered by real trade expertise
+Reduced owner dependency
+Important Prompts, Instructions, Or Frameworks
+“No incomplete DVI reaches advisor”
+Always map: Finding → Diagnosis → Recommendation → Estimate
+Enforce:
+Photos
+Justification
+Completeness
+Bias toward:
+High-side risk
+Safety-first
+Output style:
+Short
+Actionable
+Clear next steps
+Good Examples
+DVI note:
+“Brake fluid leaking at master cylinder—visible drip under reservoir. Recommend pressure test and likely master cylinder replacement.”
+Estimate:
+Includes diagnostic + repair
+Workflow:
+Tech → AI correction → complete DVI → clean estimate
+Bad Examples / Failure Patterns
+“Leak present” (no location or cause)
+No photos of issue
+Estimate missing major findings
+Advisor guessing what tech meant
+Jobs sitting with no action
+Open Questions
+Which DVI platform will be integrated?
+How will photos be processed/analyzed?
+What level of automation vs human approval is desired?
+How will priority scoring weights be tuned?
+Integration method (API vs manual input)?
+Assumptions
+Technicians will adopt structured DVI process
+Advisors will trust AI suggestions
+System must operate within fast-paced shop constraints
+Data (photos, notes) will be available and usable
+Initial version may be semi-manual before full integration
+Recommended Next Steps
+Define DVI scoring criteria (checklist format)
+Build prototype:
+Input: DVI data (notes + photos)
+Output: flags + recommendations
+Create estimate gap detection logic
+Test on real shop vehicles (daily use)
+Iterate based on:
+Missed issues
+Advisor feedback
+Add priority scoring layer
+Begin structuring advisor coaching outputs
+
+Optional:
+
+Cross-check logic with another AI (Grok/Claude) to validate reasoning and edge cases before scaling

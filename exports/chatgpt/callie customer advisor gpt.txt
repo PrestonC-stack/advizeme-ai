@@ -1,0 +1,360 @@
+# Project Overview
+Callahan Customer Advisor GPT (“Callie”) is a conversational AI service advisor designed to assist customers with vehicle concerns in a way that builds trust, reduces anxiety, and guides them toward appropriate service actions. The system is intended to function as a front-line digital advisor that mirrors a high-performing human service advisor at Callahan Auto & Diesel. It must preserve business logic, enforce quality standards, and support operational efficiency while maintaining a human, empathetic tone.
+
+# Core Objective
+Build an AI-driven advisory system that:
+- Interprets customer vehicle concerns
+- Provides safe, accurate, and reassuring guidance
+- Encourages conversion to diagnostics/appointments
+- Standardizes communication quality and inspection rigor
+- Acts as both customer-facing assistant and internal advisor support layer
+
+# Business Context
+- Business: Callahan Auto & Diesel
+- Location: 255 W. Main St., Mesa, AZ 85201
+- Phone: 480-969-3332
+- Booking: Tekmetric scheduling link
+- Industry: Automotive repair (general + diesel)
+- Network: NAPA Repair Network (3yr/36k mile warranty)
+- Users:
+  - Customers (primary interface)
+  - Service advisors (secondary beneficiaries)
+  - Technicians (indirect via DVI standards)
+- Systems:
+  - Tekmetric (shop management / scheduling)
+  - DVI system (inspection + recommendations)
+  - Internal labor rate range: $65–$185/hr
+
+# Problems We Are Trying To Solve
+- Customers feel anxious, confused, or mistrustful when dealing with repairs
+- Inconsistent advisor communication quality
+- Poor DVI quality (vague notes, missing photos, weak justification)
+- Estimates missing items or not tied to inspection findings
+- Advisors forgetting to follow up or guide next steps
+- Lack of structured coaching for advisors
+- Lost opportunities due to weak explanation or lack of urgency framing
+- Technicians not clearly communicating severity or consequences
+- Customers delaying needed repairs due to lack of clarity or trust
+
+# Vision For The Solution
+A conversational AI that:
+- Feels like a calm, trustworthy human advisor
+- Translates technical issues into clear, relatable explanations
+- Protects customer safety and budget
+- Reinforces shop standards (DVI, estimates, workflow)
+- Guides customers toward action without pressure
+- Provides internal coaching logic for advisors
+
+Outcome:
+- Higher approval rates
+- Better customer experience
+- Standardized inspection and estimate quality
+- Reduced missed work and comebacks
+
+# Current Workflow
+1. Customer experiences issue
+2. Calls shop or shows up uncertain
+3. Advisor manually interprets concern
+4. Vehicle scheduled for inspection
+5. Technician performs DVI (quality varies)
+   - Missing photos
+   - Weak notes (“needs brakes”)
+6. Advisor builds estimate (may miss items)
+7. Advisor calls customer
+   - Explanation varies by skill level
+8. Customer hesitates or declines due to unclear value
+9. Follow-ups inconsistent or missed
+
+Weak Points:
+- Communication inconsistency
+- Poor documentation
+- Lack of urgency framing
+- No standardized coaching
+- Missed revenue opportunities
+
+# Desired Future Workflow
+1. Customer engages Callie (chat/SMS/web)
+2. Callie:
+   - Assesses concern
+   - Ensures safety
+   - Provides initial guidance
+   - Recommends diagnostic/appointment
+3. Appointment scheduled via Tekmetric
+4. Technician performs structured DVI:
+   - Complete
+   - Photo-backed
+   - Clearly categorized
+5. System audits DVI + estimate alignment
+6. Advisor receives coaching prompts:
+   - Missing items
+   - Weak justifications
+   - Priority guidance
+7. Customer receives clear, confidence-building explanation
+8. Advisor follows guided communication flow
+9. Approval rates increase
+10. Automated follow-ups for deferred work
+
+# Key Features Discussed
+## Customer Interaction
+- Empathetic tone engine
+- Safety-first logic
+- Issue triage
+- Clear explanation generation
+- Appointment conversion prompts
+
+## Advisor Support
+- Real-time coaching nudges
+- Estimate completeness checks
+- Communication guidance
+
+## DVI Quality Control
+- Required photos per category
+- Structured note validation
+- Severity classification
+
+## Estimate Intelligence
+- Map findings → line items
+- Flag missing services
+- Ensure logical grouping
+
+## Follow-Up System
+- Deferred work tracking
+- Timed reminders
+- Customer-friendly messaging
+
+# Must-Have Requirements
+- Safety-first responses for emergencies
+- Transparent pricing language (range only, no guarantees)
+- “We always call before doing anything” reassurance
+- Human tone (not robotic)
+- No unsafe DIY instructions
+- DVI must include:
+  - Clear concern
+  - Supporting photos
+  - Justification
+- Estimates must align with inspection findings
+- Advisor coaching must be actionable and concise
+
+# Nice-To-Have Ideas
+- Voice integration
+- Sentiment detection scoring
+- Customer history memory
+- Predictive maintenance suggestions
+- Advisor performance analytics
+- Technician scoring system
+- Automated parts/labor bundling
+
+# Priority Logic
+Priority should be determined by:
+1. Safety risk (brakes, overheating, leaks)
+2. Vehicle reliability
+3. Preventing future costly damage
+4. Customer-stated concern
+5. Time-sensitive issues
+6. Previously deferred work
+7. Stalled approvals
+8. Maintenance intervals
+
+Categories:
+- Immediate (safety)
+- Urgent (reliability)
+- Soon (preventative)
+- Monitor (non-critical)
+
+# DVI / Inspection Standards
+“Good” DVI includes:
+- Clear, specific descriptions (no vague language)
+- Photos:
+  - Close-up + context
+  - Show actual issue
+- Severity classification
+- Cause + consequence explanation
+- No generic phrases (“looks bad”)
+
+Example Structure:
+- Concern: “Front brake pads worn to 2mm”
+- Evidence: Photo showing measurement
+- Risk: “Reduced stopping ability, rotor damage likely soon”
+- Recommendation: “Replace pads + resurface/replace rotors”
+
+# Estimate / Audit Standards
+- Every DVI finding should map to an estimate line
+- No orphan findings
+- No unexplained line items
+- Labor + parts clearly grouped
+- Related services bundled logically
+- Missing common pairings flagged:
+  - Brakes → rotors/hardware
+  - Coolant leak → pressure test
+- Pricing transparency language included
+
+# Advisor Guidance / Coaching Logic
+System should prompt advisors to:
+- Clarify vague findings
+- Add missing context (“what happens if ignored”)
+- Reinforce urgency appropriately
+- Avoid pressure language
+- Offer options when applicable
+- Encourage next step:
+  - “Would you like to schedule a diagnostic?”
+
+Tone coaching:
+- Calm, confident, human
+- Never robotic or scripted
+
+# Data Sources And Systems
+- Tekmetric (appointments, estimates)
+- DVI platform (inspection data)
+- Internal labor rate rules
+- Customer interaction logs
+- NAPA network data (for referrals)
+
+# Automation Opportunities
+Immediate:
+- Customer triage chatbot
+- Appointment booking prompts
+- DVI completeness checker
+
+Mid-Term:
+- Estimate auditing engine
+- Advisor coaching prompts
+- Follow-up automation
+
+Long-Term:
+- Predictive repair suggestions
+- Technician performance scoring
+- Full workflow orchestration
+
+# Short-Term Plan
+- Build conversational intake system (Callie)
+- Define DVI validation rules
+- Create estimate audit logic (basic)
+- Implement appointment conversion flow
+
+# Mid-Term Plan
+- Integrate with Tekmetric
+- Add advisor coaching layer
+- Build follow-up automation system
+- Expand DVI scoring system
+
+# Long-Term Vision
+- Fully AI-assisted service lane
+- Real-time decision support for advisors
+- Standardized, high-quality customer experience across all interactions
+- Scalable system usable across multiple shops
+
+# Important Prompts, Instructions, Or Frameworks
+Tone Framework:
+- Empathy first
+- Reassurance second
+- Guidance third
+
+Key phrases:
+- “You did the right thing catching this early.”
+- “Let’s make sure you’re safe first.”
+- “We’ll take a look and figure it out together.”
+
+Pricing Framework:
+- Range only
+- No commitment without inspection
+- Always include approval reassurance
+
+# Good Examples
+- Clear explanation of issue + consequence
+- Calm emergency handling (“turn vehicle off, let it cool”)
+- Transparent pricing range with variability explanation
+- Encouraging but non-pushy scheduling
+
+# Bad Examples / Failure Patterns
+- Robotic or scripted tone
+- Vague DVI notes (“needs brakes”)
+- Missing photos
+- Estimates not tied to findings
+- Overpromising fixed pricing
+- Pushy sales language
+- Ignoring safety context
+
+# Decisions Already Made
+- Tone must be human, empathetic, non-pushy
+- Labor rate range: $65–$185/hr
+- No repairs without customer approval
+- DVI quality is critical and enforceable
+- System should guide, not pressure
+
+# Open Questions
+- Which DVI platform is primary?
+- API access details for Tekmetric?
+- How to score technician performance?
+- What triggers follow-up timing exactly?
+- How detailed should estimate bundling logic be?
+
+# Assumptions
+- Shop uses Tekmetric actively
+- DVI system supports photos and notes
+- Advisors vary in skill and need coaching
+- Customers prefer clarity over technical depth
+- Increased clarity → higher approvals
+
+# Recommended Next Steps For Codex
+1. Build conversation engine with tone rules
+2. Define structured DVI schema + validation rules
+3. Create estimate-to-DVI mapping logic
+4. Implement priority classification system
+5. Build advisor coaching rule engine
+6. Design follow-up scheduling logic
+7. Create modular architecture for integrations
+
+# Build-Relevant Details
+Entities:
+- Customer
+- Vehicle
+- Concern
+- Inspection (DVI)
+- Estimate
+- Recommendation
+- Follow-up
+
+Key Fields:
+- Concern description
+- Severity level
+- फोटो evidence (photo URLs)
+- توصیه (recommendation text)
+- Estimate line items
+- Approval status
+
+Logic Conditions:
+- If safety issue → trigger urgent messaging
+- If DVI missing photo → flag incomplete
+- If finding without estimate → flag mismatch
+- If estimate without finding → flag unsupported
+
+UI Ideas:
+- Advisor dashboard with alerts:
+  - “Missing photo”
+  - “Weak description”
+  - “Unmapped estimate item”
+- Customer chat interface (SMS/web)
+
+Notifications:
+- Deferred work reminders
+- Advisor alerts for incomplete DVIs
+- Approval follow-ups
+
+Scoring Inputs:
+- DVI completeness
+- Clarity of notes
+- Photo quality
+- Estimate alignment
+
+Workflow States:
+- New inquiry
+- Scheduled
+- Inspected
+- Estimate sent
+- Approved / Deferred
+- Follow-up pending
+
+Integration Points:
+- Tekmetric API
+- Messaging (SMS/chat)
+- DVI system API

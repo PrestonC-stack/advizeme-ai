@@ -1,0 +1,373 @@
+Project Overview
+
+AI-powered estimate-building and DVI analysis system for an automotive repair shop (Callahan Auto & Diesel). The system ingests technician DVIs (Autoflow), repair orders (ROs), and existing estimates, then standardizes, audits, and converts them into clean, complete, sellable estimate structures aligned with TechMetric.
+
+Primary purpose:
+
+Eliminate missed revenue, inconsistencies, and incomplete documentation
+Enforce quality control across technicians and advisors
+Standardize workflows for scalability
+Act as an intelligent bridge between technician findings and advisor sales execution
+
+This system is intended to function as both:
+
+A production tool (building estimates, guiding advisors)
+A quality control layer (auditing DVIs, enforcing standards)
+Core Objective
+
+Create a system that converts technician findings into structured, complete, audit-verified estimate job blocks while guiding advisors on prioritization, follow-up, and sales actions—ensuring no missed work, no duplication, and consistent high-quality output.
+
+Business Context
+
+Business: Callahan Auto & Diesel (Mesa, AZ)
+Services: Light-duty auto, diesel, fleet, RV repair
+Users:
+
+Technicians → create DVIs, findings, photos
+Service Advisors (Bob) → build estimates, sell work
+CEASR (Mitch) → workflow coordination, production flow
+Owner (Preston) → diagnostic lead, system builder, QC
+
+Systems:
+
+TechMetric → estimate-building target format
+Autoflow → DVI system (inspections, photos, notes)
+RO PDFs → operational records
+Google Workspace → internal docs/workflows
+
+Operational Reality:
+
+High volume (≈25 vehicles at times)
+Mix of diagnostics, walk-ins, large repairs, warranty
+Frequent handoffs between tech → advisor
+Inconsistent documentation quality
+Owner involvement required for high-level decisions
+Problems We Are Trying To Solve
+Missed revenue due to incomplete DVIs
+Weak or vague technician notes → hard to sell
+Advisors manually interpreting inconsistent data
+Duplicate or fragmented estimates
+Lack of standardized job structure
+Poor prioritization across multiple vehicles
+Delayed follow-ups and stalled jobs
+No audit layer ensuring completeness
+Inconsistent photo/documentation quality
+Over-reliance on owner for clarification
+Communication breakdowns between techs and advisors
+No systematic way to identify “what’s missing”
+Vision For The Solution
+
+A system that:
+
+Automatically ingests DVIs/ROs
+Extracts findings and organizes them into structured job blocks
+Audits for completeness and flags gaps
+Outputs advisor-ready estimates with:
+Clear job groupings
+Justification language
+Required supporting evidence
+Provides priority recommendations
+Guides advisors with next actions and follow-ups
+
+Desired feel:
+
+Fast, structured, no ambiguity
+“Nothing slips through the cracks”
+Reduces mental load on advisors
+Acts like a second set of eyes + coach
+
+Outcomes:
+
+Higher ARO (average repair order)
+Faster estimate creation
+Better close rates
+Consistent documentation quality
+Reduced owner intervention
+Current Workflow
+Vehicle arrives → RO created
+Technician performs inspection (Autoflow DVI)
+Technician:
+Writes notes (often inconsistent)
+Uploads photos (often incomplete or unclear)
+Advisor reviews DVI
+Interprets notes manually
+Builds estimate in TechMetric
+Issues:
+Missing findings not quoted
+Weak justification → hard to sell
+Inconsistent grouping of jobs
+Advisor may miss items entirely
+Advisor contacts customer
+Follow-ups often manual/inconsistent
+Jobs stall due to:
+Lack of clarity
+Missing approvals
+Poor prioritization
+
+Weak points:
+
+Tech → Advisor handoff
+DVI quality inconsistency
+No audit step
+No structured job conversion
+Desired Future Workflow
+DVI completed (Autoflow)
+System ingests DVI + RO
+System:
+Extracts all findings
+Groups into job blocks
+Maps to estimate structure
+Audit layer:
+Flags missing info (photos, notes, measurements)
+Identifies unquoted findings
+Detects duplication
+Output:
+Clean, structured estimate draft
+Advisor notes + justification language
+Advisor:
+Reviews + approves (not builds from scratch)
+Contacts customer
+System:
+Tracks follow-ups
+Re-prioritizes jobs dynamically
+Key Features Discussed
+1. DVI Parsing & Structuring
+Extract findings, severity, notes, photos
+Normalize language and structure
+2. Job Block Builder
+Convert findings → grouped repair jobs
+Align with TechMetric structure
+3. Audit Engine
+Missing photo detection
+Weak note detection
+Unquoted findings
+Duplicate detection
+4. Estimate Generator
+Advisor-ready estimate blocks
+Includes:
+Description
+Labor/parts placeholders
+Justification text
+5. Priority Engine
+Safety
+Customer complaint
+Reliability
+Revenue opportunity
+Stalled jobs
+6. Advisor Coaching Layer
+“You missed this item”
+“This needs better justification”
+“Follow up on this customer”
+7. Follow-Up System
+Track pending approvals
+Suggest timing for outreach
+Must-Have Requirements
+No missed findings
+No duplicate jobs
+All findings mapped to estimates
+Enforced DVI quality standards
+Advisor-ready outputs (not raw data)
+Clear job grouping logic
+Audit flags must be explicit
+System must reduce manual interpretation
+Nice-To-Have Ideas
+Voice-to-DVI enhancement
+Photo quality scoring
+AI-generated customer explanations
+Predictive upsell suggestions
+Integration with scheduling
+Technician scoring system
+Customer-facing summaries
+Priority Logic
+
+Order of importance:
+
+Safety issues (brakes, steering, leaks)
+Customer concern
+Reliability risks
+Active failures
+Preventative maintenance
+Upsell opportunities
+Deferred/stalled work
+
+Additional logic:
+
+Jobs tied to same system grouped together
+High-value jobs flagged for priority follow-up
+Aging estimates escalated
+DVI / Inspection Standards
+
+“Good” DVI includes:
+
+Clear, specific findings (not vague)
+Supporting photos (before/after, close-up)
+Measurable data when possible
+Cause + effect explanation
+No generic phrases (“needs attention”)
+
+Required:
+
+Every issue must have:
+Description
+Evidence (photo or test)
+Justification
+Estimate / Audit Standards
+
+“Good” estimate:
+
+Every DVI finding is accounted for
+No duplication
+Proper job grouping
+Clear descriptions
+Sellable language
+
+Audit flags:
+
+Missing items
+Weak justification
+Missing photos
+Orphan findings (not quoted)
+Advisor Guidance / Coaching Logic
+
+System should:
+
+Highlight missed opportunities
+Suggest bundling jobs
+Provide wording for customer communication
+Remind about follow-ups
+Flag weak estimates before sending
+
+Behavior:
+
+Direct, actionable, not vague
+Example: “Brake fluid leak noted but not quoted”
+Data Sources And Systems
+Autoflow → DVI data (primary input)
+TechMetric → estimate output structure
+RO PDFs → job context/history
+Google Workspace → documentation
+Internal SOPs → quality standards
+Automation Opportunities
+
+Immediate:
+
+DVI → structured extraction
+Missing item detection
+Estimate draft generation
+
+Mid-term:
+
+Follow-up automation
+Priority scoring
+Advisor notifications
+
+Long-term:
+
+Full workflow automation
+Predictive repair suggestions
+Integration with customer communication
+Short-Term Plan
+Build DVI parser
+Define job block schema
+Create audit rules engine
+Generate basic estimate drafts
+Mid-Term Plan
+Add priority engine
+Add advisor coaching layer
+Build follow-up tracking
+Improve grouping logic
+Long-Term Vision
+Fully automated estimate pipeline
+Minimal advisor input required
+Scalable across multiple shops
+Foundation for AdvizMe.ai ecosystem
+Important Prompts, Instructions, Or Frameworks
+“Convert findings into structured, estimate-ready job blocks”
+“Ensure no missed revenue, no duplication”
+“Audit for completeness before output”
+“Advisor-ready, not raw data”
+Good Examples
+Finding → grouped into system (e.g., brakes)
+Includes:
+Description
+Cause
+Risk
+Recommendation
+Clear, sellable language
+Bad Examples / Failure Patterns
+“Needs attention”
+Missing photos
+Findings not quoted
+Duplicate line items
+Disorganized estimates
+Decisions Already Made
+TechMetric is target format
+Autoflow is primary DVI source
+System must include audit layer
+Advisor output must be structured and ready-to-use
+Open Questions
+Exact job block schema definition
+Integration method with TechMetric
+How to handle pricing logic
+Photo analysis depth
+Assumptions
+DVIs contain usable structured data
+TechMetric format is consistent
+Advisors prefer guided workflow over manual
+Recommended Next Steps For Codex
+Define data schema:
+DVI findings
+Job blocks
+Build parser for Autoflow input
+Create audit rule engine
+Build estimate generator
+Create test cases using real DVIs
+Build-Relevant Details
+
+Entities:
+
+Vehicle
+RO
+DVI Finding
+Job Block
+Estimate
+Audit Flag
+
+Fields:
+
+Finding: description, severity, photos, notes
+Job Block: system, tasks, justification
+Audit: type, severity, message
+
+Logic Conditions:
+
+If finding exists AND not in estimate → flag
+If no photo → flag
+If duplicate keywords → flag
+
+UI Ideas:
+
+Left: DVI findings
+Right: generated estimate
+Middle: audit flags
+
+States:
+
+Raw DVI
+Parsed
+Audited
+Estimate Draft
+Approved
+
+Notifications:
+
+Missing items
+Follow-up reminders
+High-priority jobs
+
+Scoring Inputs:
+
+Safety risk
+Revenue value
+Age of job
+Customer concern linkage

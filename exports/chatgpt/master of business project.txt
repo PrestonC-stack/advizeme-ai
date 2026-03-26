@@ -1,0 +1,368 @@
+Suggested Title: AI Estimate & DVI Audit System – Codex Implementation Handoff
+
+Project Overview
+
+AI-powered estimate-building and DVI (Digital Vehicle Inspection) analysis system for an automotive repair shop. The system converts technician findings into structured, complete, and sellable estimates while enforcing quality standards and guiding service advisors.
+
+Purpose:
+
+Eliminate missed revenue, duplication, and poor documentation
+Standardize technician → advisor → estimate workflow
+Create a repeatable, auditable, scalable system
+Improve communication, consistency, and close rates
+
+End users:
+
+Technicians (input findings)
+Service Advisors (build/sell estimates)
+Owner (quality control, system enforcement)
+Core Objective
+
+Build a system that:
+
+Converts DVI + RO + findings → structured, estimate-ready job blocks
+Audits for completeness, accuracy, and missed opportunities
+Enforces documentation and inspection standards
+Guides advisors with next-best actions and follow-ups
+Creates scalable, repeatable workflows with minimal manual interpretation
+Business Context
+
+Business:
+
+Callahan Auto & Diesel (Mesa, AZ)
+Services: light-duty, diesel, fleet, RV
+
+Users:
+
+Technicians → create DVIs and findings
+Advisors → build estimates, communicate, sell work
+Owner (Preston) → diagnostic lead, system architect, QC
+
+Systems:
+
+Tekmetric → estimate building (target output format)
+Autoflow → DVI/inspection system
+RO/Invoice PDFs → current operational records
+
+Operational reality:
+
+Mixed workflow: diagnostics, warranty, large repairs, walk-ins
+Inconsistent documentation quality
+Advisors rely on interpretation instead of structured inputs
+High dependency on experience → not systemized
+Problems We Are Trying To Solve
+Incomplete DVIs (missing photos, vague notes)
+Missed revenue (upsells, related work not captured)
+Duplicate or fragmented estimate lines
+Poor technician write-ups → advisor confusion
+No standardized mapping from findings → estimate
+Inconsistent estimate quality between advisors
+Advisors not following up properly
+No system enforcing “complete job thinking”
+Time loss translating technician intent → customer-ready estimate
+Lack of audit trail for quality control
+Jobs stalling due to unclear next steps
+Vision For The Solution
+
+A system that:
+
+Ingests DVI + RO + notes
+Interprets and structures findings into:
+Job blocks (grouped repairs)
+Required parts/labor categories
+Supporting documentation (photos, notes)
+Audits for:
+Missing items
+Incomplete justification
+Missed opportunities
+Outputs:
+Advisor-ready estimate structure (Tekmetric format)
+Follow-up actions
+Priority ranking
+Acts like:
+“A senior advisor + shop foreman reviewing every job before it hits the customer”
+
+Feel:
+
+Fast
+Structured
+Clear
+No ambiguity
+Current Workflow
+Vehicle arrives → RO created
+Technician performs inspection (Autoflow DVI)
+Adds notes (often inconsistent)
+Adds photos (sometimes missing/low quality)
+Advisor reviews DVI
+Interprets technician intent manually
+Builds estimate in Tekmetric
+Advisor communicates with customer
+Follow-up handled inconsistently
+
+Weak points:
+
+No standard structure for findings
+Advisors guessing intent
+Missing labor/parts
+No enforcement of documentation quality
+No systematic follow-up logic
+Desired Future Workflow
+Technician completes structured DVI
+System ingests:
+DVI
+RO
+Prior history (optional)
+AI processes:
+Groups findings into job blocks
+Maps findings → required estimate items
+Flags missing documentation
+System outputs:
+Pre-built estimate structure
+Advisor notes
+Follow-up recommendations
+Advisor:
+Reviews
+Adjusts if needed
+Presents to customer
+System tracks:
+Approval status
+Follow-up timing
+Job progress
+Key Features Discussed
+1. DVI → Estimate Conversion Engine
+Convert findings into:
+Job blocks (e.g., “Front Brake Service”)
+Labor operations
+Parts categories
+Normalize language
+2. Audit Engine
+Detect:
+Missing labor
+Missing parts
+Missing photos
+Weak notes
+Flag inconsistencies
+3. Job Block System
+Group related work:
+Safety
+Maintenance
+Diagnostic
+Prevent duplication
+4. Advisor Guidance Layer
+Next steps:
+“Call customer”
+“Request approval”
+“Schedule follow-up”
+Sales prompts
+5. Priority Engine
+Rank jobs by:
+Safety
+Reliability
+Customer concern
+Revenue impact
+6. Documentation Quality Scoring
+Score DVIs:
+Notes quality
+Photo completeness
+Clarity
+Must-Have Requirements
+Structured output compatible with Tekmetric
+Enforced DVI quality standards
+Clear mapping: finding → estimate line
+No duplication of work
+Advisor-ready output (no interpretation needed)
+Audit flags for missing data
+Scalable and repeatable logic
+Fast processing
+Nice-To-Have Ideas
+Historical repair pattern detection
+Customer approval likelihood scoring
+Automated customer messaging drafts
+Technician coaching feedback loop
+Voice-to-text DVI enhancement
+AI training system for technicians
+Priority Logic
+
+Priority based on:
+
+Safety issues (highest)
+Customer-stated concerns
+Reliability risks (breakdown potential)
+Maintenance (preventative)
+Revenue opportunity
+Stalled jobs (time-sensitive follow-up)
+
+Additional:
+
+Jobs waiting on approval → escalate
+Long-open estimates → trigger follow-up
+DVI / Inspection Standards
+
+Good DVI includes:
+
+Clear symptom + cause explanation
+Specific component identification
+Supporting photos (before/after or failure evidence)
+No vague language (“looks bad” not acceptable)
+Actionable recommendation
+
+Required:
+
+At least 1–3 photos per issue
+Clear technician note:
+What was found
+Why it matters
+What’s needed
+Estimate / Audit Standards
+
+Good estimate:
+
+Complete (no missing labor/parts)
+Grouped logically (job blocks)
+No duplication
+Clear customer-facing language
+Direct mapping from DVI findings
+
+Audit flags:
+
+Missing labor for listed parts
+Missing parts for listed labor
+No supporting documentation
+Incomplete job grouping
+Advisor Guidance / Coaching Logic
+
+System should:
+
+Suggest next actions:
+“Call now”
+“Send estimate”
+“Schedule revisit”
+Provide selling points:
+Safety risk explanation
+Consequence of delay
+Remind:
+Follow-up timing
+Customer status
+Data Sources And Systems
+Autoflow → DVI input
+Tekmetric → estimate output
+RO PDFs → job context
+Future:
+Customer history
+Vehicle history
+Automation Opportunities
+Immediate
+DVI → structured job blocks
+Missing item detection
+Estimate draft generation
+Mid-Term
+Follow-up automation
+Advisor task generation
+DVI scoring
+Long-Term
+Full workflow automation
+Predictive repair suggestions
+Customer communication automation
+Short-Term Plan
+Build DVI parsing + structuring system
+Create job block logic
+Generate basic estimate drafts
+Implement audit flags
+Mid-Term Plan
+Add advisor guidance system
+Implement priority ranking
+Add DVI scoring system
+Integrate follow-up workflows
+Long-Term Vision
+Fully automated advisor assistant
+Standardized shop-wide workflow system
+Scalable product (AdvizMe.ai integration)
+Training + knowledge system for technicians
+Important Prompts, Instructions, Or Frameworks
+
+Core transformation logic:
+
+Input: DVI + RO
+Output:
+Job blocks
+Estimate lines
+Audit flags
+
+Evaluation framework:
+
+Completeness
+Clarity
+Justification
+Sellability
+Good Examples
+DVI clearly states:
+“Front brake pads at 2mm, rotors scored, recommend full brake service”
+Estimate grouped:
+“Front Brake Service – Pads + Rotors + Labor”
+Photos showing measurable wear
+Bad Examples / Failure Patterns
+“Brakes bad”
+No photos
+Labor listed without parts
+Duplicate lines for same repair
+Advisor guessing technician intent
+Decisions Already Made
+Tekmetric = final estimate format
+Autoflow = DVI source
+Job block system is required
+Audit layer is mandatory
+Advisor guidance is part of system
+Open Questions
+Exact Tekmetric API integration method
+Level of automation vs manual override
+How to handle edge cases (custom jobs)
+Standard job templates vs dynamic generation
+Assumptions
+Technicians will continue using Autoflow
+Advisors will review before sending estimates
+System will augment, not replace, human decision-making
+Recommended Next Steps For Codex
+Build DVI parser (structured JSON output)
+Define job block schema
+Create mapping rules:
+Finding → labor
+Finding → parts
+Build audit rule engine
+Generate estimate output format (Tekmetric-ready)
+Create basic UI or output view for advisor review
+Build-Relevant Details
+Core Entities
+Vehicle
+RO
+DVI Finding
+Job Block
+Estimate Line
+Audit Flag
+Key Fields
+Finding:
+component
+condition
+severity
+notes
+photos
+Job Block:
+title
+category (safety/maintenance/etc.)
+linked findings
+Estimate Line:
+labor
+parts
+description
+Logic Conditions
+If finding has no photo → flag
+If parts without labor → flag
+If similar findings → group into job block
+UI Concepts
+Left: DVI findings
+Right: generated estimate
+Flags highlighted in red
+Advisor action panel
+Dashboard Ideas
+DVI quality score
+Missed revenue tracker
+Follow-up queue

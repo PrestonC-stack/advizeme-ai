@@ -1,0 +1,386 @@
+Project Overview
+
+Internal advisor intelligence system (“Callie”) for Callahan Auto & Diesel designed to standardize service advisor decision-making, enforce inspection/estimate quality, and improve shop productivity, documentation, and customer communication. It acts as a structured thinking layer over existing workflows (TechMetric, DVI process), not a replacement for advisors.
+
+Primary value:
+
+Eliminates inconsistency in advisor performance
+Prevents missed findings, under-scoped estimates, and liability exposure
+Improves throughput, staging, and scheduling discipline
+Converts raw DVI data into structured, actionable plans
+
+Reference knowledge base:
+
+Core Objective
+
+Build an execution-ready advisor system that:
+
+Forces completeness (300% rule)
+Structures every repair decision using consistent frameworks (3Cs, P1–P4, confidence levels)
+Converts inspections into staged, schedulable repair plans
+Protects shop liability while improving customer clarity and approval rates
+Business Context
+
+Business: Callahan Auto & Diesel
+Locations:
+
+Apache (fleet/heavy, Drew)
+Country Club (retail, Bob + Mitch)
+
+Users:
+
+Drew (practical, direct, fleet-focused)
+Bob (customer-facing, estimate clarity)
+Mitch (workflow, bay management)
+Preston (owner, risk/escalation)
+
+Systems:
+
+TechMetric (estimates, ROs)
+DVI system (inspection + photos)
+Internal GPT (Callie layer)
+
+Operational Environment:
+
+High mix of maintenance + heavy repair
+Arizona climate impacts failure patterns
+Multi-advisor, multi-location workflow complexity
+Strong need for documentation + liability protection
+Problems We Are Trying To Solve
+Incomplete DVIs → missed revenue + liability exposure
+Advisors filtering work based on assumed budget
+Poor estimate structure (missing labor, fluids, sublet)
+Overloaded first estimates → low approvals
+No consistent staging strategy
+Weak customer communication (unclear “why”)
+Stalled jobs with no forced next action
+No standardized priority system (P1–P4 inconsistency)
+Poor scheduling discipline (random, non-strategic)
+Lack of predictive planning (only reactive repairs)
+Inconsistent documentation → risk in disputes
+No systematic bundling → lost efficiency/profit
+Advisor-dependent quality (no system-level enforcement)
+Vision For The Solution
+
+A structured advisor “operating system” that:
+
+Converts DVI → categorized findings → staged estimates → scheduled plan
+Feels like a senior advisor standing next to you
+Enforces thinking, not just outputs
+Reduces cognitive load while increasing accuracy
+
+Outputs must:
+
+Separate safety vs concern vs future work
+Assign priority (P1–P4)
+Assign confidence (High/Medium/Low)
+Provide scheduling automatically
+Include customer-ready language + internal logic
+
+End result:
+
+Faster decisions
+Higher quality estimates
+Better customer trust
+Improved shop throughput
+Current Workflow
+Customer arrives → concern captured (often vague/incomplete)
+Vehicle dispatched to tech
+Tech performs DVI (variable quality)
+Missing photos
+Weak notes
+No measurement data
+Advisor reviews DVI
+Interprets inconsistently
+May filter findings
+Estimate built in TechMetric
+Often incomplete (missing fluids/labor overlap)
+Advisor presents estimate
+Overloaded or unclear
+Customer approves/declines
+Work performed or deferred
+Little structured follow-up or scheduling
+
+Failure Points:
+
+Intake clarity
+DVI quality
+Estimate completeness
+No staging logic
+No predictive planning
+Weak follow-up scheduling
+Desired Future Workflow
+Intake (Stage 1)
+Structured questioning
+Related systems identified
+DVI instructions defined
+Inspection (DVI)
+Complete documentation (photos, measurements)
+Clear condition + cause notes
+DVI Processing (Stage 2)
+Auto-categorize:
+Customer concern
+Safety/liability
+Predictive/future
+Assign confidence levels
+Determine what to estimate NOW vs HOLD
+Estimate Structuring
+Group by system/labor overlap
+Ensure full parts/labor/fluids/sublet
+Planning (Stage 3)
+Build staged repair plan
+Apply AZ seasonal logic
+Assign scheduling windows
+Customer Communication
+Clear, non-technical explanation
+Safety + maintenance + future separated
+Execution + Follow-up
+Schedule next visits (Mon–Thurs only)
+Track deferred work
+Key Features Discussed
+Decision Frameworks
+Three Cs (Concern / Cause / Correction)
+300% Rule (find, educate, report everything)
+Priority system (P1–P4)
+Confidence levels (High/Medium/Low)
+DVI Processing Engine
+Categorization logic
+Missing info detection
+Photo/measurement enforcement
+Estimate Intelligence
+Line-item completeness checks
+Labor overlap grouping
+Under/over-scoping detection
+Scheduling Engine
+Auto-generate:
+2 dates
+2 time slots (8:00 / 11:00)
+Mon–Thurs only
+Multi-appointment staging (max 3)
+AZ Seasonal Logic
+Heat → batteries, cooling, rubber
+Cold → leaks, seals, battery
+Monsoon → tires, suspension, electrical
+Productivity Layer
+Stagnation detection
+Next-step enforcement
+Workflow balancing (Light/Medium/Heavy)
+Red Flag System
+Diagnostic loops
+High cost + low certainty
+Conflicting data
+Must-Have Requirements
+Mandatory output structure enforcement
+Explicit priority + confidence on every item
+Strict separation of:
+Safety
+Customer concern
+Predictive work
+No assumption of customer budget
+Complete estimate composition:
+Parts
+Labor
+Fluids
+Sublet
+Scheduling rules enforced (no Fridays)
+Advisor-specific tone adaptation
+Apache vs Country Club separation
+Documentation-first mindset
+Nice-To-Have Ideas
+TechMetric API integration for auto-audit
+DVI scoring system (quality score)
+Advisor performance dashboard
+Predictive failure modeling by vehicle history
+Automated follow-up reminders
+Voice-to-intake assistant
+Photo quality validation (AI-assisted)
+Priority Logic
+P1: Active, safety-critical, or same-day expectation
+P2: No update / missing DVI or verification
+P3: Approved, in progress
+P4: Waiting (authorization, parts, scheduling)
+
+Priority must include:
+
+WHY it is that level
+WHAT moves it forward
+DVI / Inspection Standards
+
+Good DVI includes:
+
+Clear condition description
+Measurable data (mm, %, leaks severity)
+Photos of:
+Failure
+Context
+Cause explanation (not just symptom)
+No vague language (“recommend soon”)
+
+Must support:
+
+Diagnosis
+Estimate justification
+Customer education
+Estimate / Audit Standards
+
+Each job must include:
+
+Parts (correct + complete)
+Labor (accurate time)
+Fluids (often missed)
+Supplies
+Sublet (if applicable)
+
+System should flag:
+
+Missing labor overlap opportunities
+Missing fluids/services
+Mismatch between DVI and estimate
+Under-scoped repairs
+Advisor Guidance / Coaching Logic
+
+System should:
+
+Ask for missing info before proceeding
+Suggest next diagnostic steps
+Prevent estimate overload
+Recommend staging
+Highlight risk/liability
+Prompt for stagnation resolution
+Offer “buddy check” before finalizing
+Data Sources And Systems
+TechMetric (RO + estimate data)
+DVI platform (inspection data)
+Internal knowledge base (rules/logic)
+Advisor input (critical for accuracy)
+Vehicle data (mileage, usage)
+Automation Opportunities
+
+Immediate:
+
+DVI → categorized output
+Estimate completeness audit
+Scheduling suggestion generation
+
+Mid-Term:
+
+TechMetric integration
+Automated follow-up scheduling
+Stagnation alerts
+
+Long-Term:
+
+Predictive maintenance engine
+Advisor performance analytics
+AI-assisted DVI validation
+Short-Term Plan
+Build structured input → output pipeline
+Enforce mandatory output format
+Implement:
+Priority logic
+Confidence tagging
+Scheduling rules
+Add estimate audit checklist
+Mid-Term Plan
+Integrate with TechMetric
+Build DVI quality scoring
+Add workflow tracking (P1–P4 dashboard)
+Implement stagnation detection
+Long-Term Vision
+Full advisor OS layer across shop
+Predictive repair planning at scale
+Standardized advisor performance across locations
+Data-driven shop optimization
+Important Prompts, Instructions, Or Frameworks
+“Garbage in = garbage out” → stop if missing info
+Three Cs required on every job
+300% Rule enforced
+Always separate:
+Concern
+Safety
+Future
+Always include:
+Priority
+Confidence
+AZ context
+Next step
+Good Examples
+Grouping brakes + fluid service
+Scheduling future work with exact dates/times
+Explaining WHY (not just WHAT)
+Clean separation of estimate vs internal notes
+Catching missing fluids in estimates
+Bad Examples / Failure Patterns
+“Recommend soon” (no clarity)
+Missing labor or fluids
+Overloading estimate with everything at once
+No staging or scheduling
+Ignoring AZ seasonal factors
+No confidence level assigned
+Decisions Already Made
+Mandatory output structure is non-negotiable
+Scheduling rules fixed (Mon–Thurs, 8/11 AM)
+Confidence levels required
+No budget assumptions allowed
+Advisors remain decision-makers (no automation override)
+Open Questions
+TechMetric API access details?
+DVI platform integration method?
+How to store historical vehicle data?
+Should scoring systems be visible to advisors?
+Assumptions
+Advisors will provide accurate input
+DVI system supports photos + notes
+TechMetric is primary estimate tool
+Shop wants standardization across locations
+Recommended Next Steps For Codex
+Build core schema:
+RO
+Findings
+Priority
+Confidence
+Scheduling
+Create processing engine:
+Input: DVI + advisor notes
+Output: structured plan
+Implement validation layer:
+Missing info detection
+Estimate completeness audit
+Build templating system:
+Customer-facing copy
+Internal notes
+Add scheduling generator
+Build-Relevant Details
+Entities
+RO
+Vehicle
+Finding
+Job
+Estimate Line
+Appointment
+Fields
+Priority (P1–P4)
+Confidence (High/Medium/Low)
+Category (Concern/Safety/Future)
+AZ Context
+Next Step
+Parts/Labor/Fluids/Sublet
+Logic Conditions
+If safety → prioritize P1
+If no DVI → P2
+If approved → P3
+If waiting → P4
+UI Concepts
+Split screen:
+DVI input
+Structured output
+Highlight missing items
+Priority color coding
+Notifications
+Stalled job alerts
+Missing DVI warnings
+Follow-up reminders
+Dashboard Ideas
+P1–P4 distribution
+Light/Medium/Heavy balance
+Deferred work tracking

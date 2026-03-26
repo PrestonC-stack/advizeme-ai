@@ -1,0 +1,23 @@
+# Node / desktop app
+node_modules/
+dist/
+dist-electron/
+
+# Env / secrets
+.env
+.env.local
+.env.*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Generated files
+*.tsbuildinfo

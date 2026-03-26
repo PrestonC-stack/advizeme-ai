@@ -1,0 +1,393 @@
+Project Overview
+
+AI-powered estimate-building and DVI analysis system for an automotive repair shop (Callahan Auto & Diesel) designed to convert technician findings into clean, sellable, accurate estimates and follow-up workflows.
+
+Primary function: take DVIs, ROs, and estimates → standardize into TechMetric-ready job blocks, audit for completeness, enforce quality standards, and guide advisors on next actions.
+
+Core Objective
+
+Build a system that:
+
+Converts technician findings into structured, estimate-ready job blocks
+Ensures no missed revenue, no overcharging, no duplication
+Enforces DVI quality and documentation standards
+Produces advisor-ready estimates + follow-up plans
+Enables scalable, repeatable, and auditable repair workflows
+Business Context
+Business: Callahan Auto & Diesel (Mesa, AZ)
+Services: light-duty, diesel, fleet, RV repair
+Systems:
+TechMetric (estimate building target format)
+Autoflow DVI system (inspection reports)
+RO/Invoice PDFs (current operational records)
+Users:
+Technicians (create DVI + findings)
+Service advisors (build estimates, sell work)
+Owner/operator (Preston – system builder, quality control)
+
+Operational reality:
+
+Mix of walk-in estimates, warranty jobs, diagnostics, and large repairs
+Heavy reliance on technician notes → inconsistent quality
+High-ticket jobs (diesel, engine, suspension, fleet)
+Problems We Are Trying To Solve
+Inconsistent DVI quality (missing measurements, vague notes)
+Estimates missing:
+required related items (fluids, seals, hardware)
+diagnostic time
+calibrations / alignments
+Labor stacking incorrectly (overcharging or undercharging)
+Poor structuring of work (no priority tiers)
+Advisors forced to manually interpret DVIs
+Lost revenue from:
+missed add-ons
+incomplete estimates
+Customer trust risk:
+unclear justification
+overpricing perception
+No standardized follow-up system for declined work
+Weak separation of:
+confirmed repairs vs diagnostics
+No system memory or consistency across jobs
+Vision For The Solution
+
+A system that:
+
+Reads any DVI / estimate / RO → outputs clean job blocks instantly
+Automatically:
+groups work logically
+flags missing items
+prevents labor duplication
+Enforces:
+priority-based repair plans (Now / Soon / Later / Monitor)
+Produces:
+estimate
+audit
+follow-up schedule
+Acts as:
+advisor assistant
+quality control system
+revenue optimizer
+Feels like:
+fast, structured, no fluff
+“copy/paste into TechMetric ready”
+Current Workflow
+Customer arrives / complaint logged
+Technician performs DVI (Autoflow)
+Technician writes notes (often inconsistent)
+Advisor manually:
+interprets DVI
+builds estimate
+guesses missing items
+Estimate created in TechMetric-style system
+Customer approves/declines
+No structured follow-up for declined work
+
+Weak points:
+
+Technician documentation inconsistency (major issue)
+Advisor interpretation errors
+Missed items (fluids, hardware, diag)
+Labor overlap mistakes
+No standardized priority system
+No structured follow-up system
+Desired Future Workflow
+DVI uploaded
+System auto-generates:
+Job blocks (fully structured)
+Priority tiers
+System audits:
+missing items
+overlap issues
+unsupported repairs
+Advisor reviews + slight edits
+Estimate presented cleanly
+Customer decisions tracked
+System generates:
+follow-up plan
+scheduled future visits
+Continuous improvement loop for tech quality
+Key Features Discussed
+1. Job Block Generator
+Standard format:
+Job Title
+Labor
+Parts
+RO Note
+Required Related Items
+Recommended Add-Ons
+Labor Overlap Notes
+Priority
+2. DVI Conversion Engine
+Extracts:
+actionable repairs
+diagnostic needs
+Splits into:
+confirmed vs needs diagnosis
+3. Estimate Audit System
+Flags:
+missing items
+duplicated labor
+unsupported repairs
+Ensures:
+complaint addressed
+safety items included
+4. Priority Engine
+Now / Soon / Later / Monitor classification
+5. Labor Overlap Logic
+
+Examples:
+
+A/C evac/recharge only once
+Coolant drain not duplicated
+Suspension grouped
+Alignment flagged once
+6. Required Related Items Engine
+
+Examples:
+
+coolant with turbo removal
+gaskets, seals, O-rings
+one-time-use bolts
+7. Recommended Add-Ons Engine
+
+Examples:
+
+coil boots with spark plugs
+fluid services with component replacement
+8. DVI Quality Checker
+
+Flags:
+
+vague notes
+no measurements
+missing photos
+no test results
+9. Follow-Up Planner
+
+Outputs:
+
+scheduled future visits
+categorized urgency
+10. Advisor Coaching Layer
+prompts missing steps
+suggests bundling jobs
+flags risk to customer
+Must-Have Requirements
+Strict job block format
+Priority classification on every item
+Separation:
+confirmed repair vs diagnostic
+Labor overlap detection
+Required related items included
+DVI quality enforcement
+Estimate audit capability
+Follow-up generation
+Concise output (advisor-ready)
+Nice-To-Have Ideas
+VIN decode + build data integration
+parts pricing benchmarking
+smart canned jobs library
+predictive upsell suggestions
+tech scoring system
+automated scheduling integration
+dashboard for missed revenue
+Priority Logic
+Now
+safety issues (brakes, steering)
+drivability failures
+severe leaks
+Soon
+moderate wear
+progressing failures
+Later
+maintenance
+minor issues
+Monitor
+noted but not actionable yet
+
+Examples:
+
+Brake pedal dropping → Now
+coolant leak water pump → Now
+worn tires → Soon
+dirty fluid → Later
+DVI / Inspection Standards
+
+Good DVI must include:
+
+exact failure description
+measurements:
+brake mm
+tread depth
+play
+scan results:
+codes
+freeze frame
+leak source confirmation
+photos/videos
+severity level
+clear wording
+
+Failures observed:
+
+vague wording
+missing measurements
+unclear cause vs symptom
+inconsistent documentation
+Estimate / Audit Standards
+
+Good estimate:
+
+covers customer complaint
+includes all DVI findings
+includes:
+fluids
+seals
+hardware
+separates:
+diagnostic vs repair
+handles labor overlap correctly
+groups related jobs
+includes verification steps
+
+Common misses:
+
+diagnostic time
+alignment
+calibration
+fluid fills
+verification tests
+Advisor Guidance / Coaching Logic
+
+System should:
+
+warn if estimate incomplete
+suggest bundling jobs
+flag missing required items
+highlight safety items first
+suggest follow-up timing
+prevent overcharging (labor duplication)
+Data Sources And Systems
+Autoflow DVI reports
+RO / Estimate PDFs
+TechMetric (target structure)
+Technician notes
+VIN / vehicle data
+Warranty info (NAPA, etc.)
+Automation Opportunities
+Immediate
+DVI → job block conversion
+estimate audit engine
+follow-up generator
+Mid-Term
+smart job templates
+auto-add related items
+labor overlap detection engine
+Long-Term
+full estimate builder
+advisor AI assistant
+tech performance scoring
+predictive maintenance scheduling
+Short-Term Plan
+Build job block generator
+Build DVI parser
+Implement priority logic
+Implement audit checklist
+Mid-Term Plan
+Add overlap logic engine
+Add required items logic
+Build follow-up automation
+Add advisor coaching prompts
+Long-Term Vision
+Fully automated estimate system
+Minimal manual advisor input
+Integrated shop operating system
+Scalable across multiple locations
+Owner steps out of daily operations
+Important Prompts, Instructions, Or Frameworks
+Strict job block format (non-negotiable)
+Priority classification rules
+DVI review rules:
+convert all actionable findings
+Estimate audit rules:
+verify completeness
+Follow-up format (structured fields)
+Good Examples
+Turbo failure diagnosed with clear explanation and risk outlined
+Timing system inspection with detailed root cause and required repairs
+Brake measurement + recommendation with mm values
+Bad Examples / Failure Patterns
+“needs looked at” (no diagnosis)
+no measurements (brakes, tires)
+recommending repair before confirming cause
+missing fluids/hardware
+stacking labor improperly
+duplicate services (LOF listed twice)
+Decisions Already Made
+Use TechMetric-style job blocks
+Keep outputs concise and structured
+Always include priority classification
+Always flag labor overlap
+Separate diagnostic vs repair
+Enforce DVI quality checks
+Open Questions
+Integration method with TechMetric (API vs manual copy)
+Pricing standardization vs market comparison
+How to store historical job data
+Technician scoring system design
+Assumptions
+Technicians will continue using Autoflow
+Advisors will rely on structured outputs
+Estimates will still require human approval
+Business will scale and require consistency
+Recommended Next Steps For Codex
+Build DVI parser (PDF → structured data)
+Create job block generator function
+Implement priority classification logic
+Build estimate audit module
+Add required related items logic
+Add labor overlap detection
+Build follow-up generator
+Create reusable templates (smart jobs)
+Build-Relevant Details
+Core Entities
+Vehicle
+RO
+DVI
+Job Block
+Estimate
+Follow-Up Item
+Key Fields
+concern
+finding
+severity
+measurements
+labor time
+parts list
+priority
+related items
+overlap flags
+Logic Conditions
+if leak → require source confirmation
+if component removed → add fluids/seals
+if suspension → suggest alignment
+if diagnostic unclear → mark as diagnostic
+UI Ideas
+split screen:
+left: DVI
+right: job blocks
+color-coded priorities
+missing items alerts
+Workflow States
+DVI uploaded
+parsed
+estimate generated
+audited
+approved
+declined
+follow-up scheduled
+Notifications
+missing info alerts
+safety priority alerts
+follow-up reminders

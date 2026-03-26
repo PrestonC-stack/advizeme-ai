@@ -1,0 +1,30 @@
+{
+  "name": "advizeme-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AdvizeMe.ai pilot desktop copilot for Callahan Auto & Diesel",
+  "main": "dist-electron/electron/main.js",
+  "scripts": {
+    "dev": "concurrently -k \"vite\" \"tsc -p tsconfig.node.json --watch\" \"wait-on tcp:5173 dist-electron/electron/main.js && cross-env VITE_DEV_SERVER_URL=http://127.0.0.1:5173 electron .\"",
+    "build": "vite build && tsc -p tsconfig.node.json",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.4",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "@vitejs/plugin-react": "^4.4.1",
+    "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
+    "electron": "^35.1.4",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.1",
+    "wait-on": "^8.0.3"
+  }
+}

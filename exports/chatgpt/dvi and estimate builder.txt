@@ -1,0 +1,353 @@
+Project Overview
+
+A structured Service Advisor + Technician workflow system for Callahan Auto & Diesel that converts fragmented shop data (DVIs, notes, scan results, photos, estimates) into organized, actionable intelligence. The system functions as an operational backbone and “execution layer” to standardize inspections, improve estimate accuracy, prioritize work, and guide both advisors and technicians in real time.
+
+This project is designed to bridge the gap between technician findings and business execution—ensuring nothing is missed, miscommunicated, or delayed—while enabling scalable, systemized shop operations.
+
+Core Objective
+
+Build a system that ingests DVI/inspection data and outputs:
+
+Clean, structured vehicle assessments
+Complete and accurate estimates
+Technician-ready workflows
+Real-time priority tracking across all vehicles
+Advisor coaching and decision support
+
+End goal: a self-managing service workflow system that reduces human error, increases ARO, and enables scalable operations.
+
+Business Context
+Business: Callahan Auto & Diesel / Callahan Enterprises LLC
+Industry: Automotive repair & diesel service
+Users:
+Service Advisors (primary decision-makers)
+Technicians (data producers + executors)
+Shop owner/manager (oversight + optimization)
+Environment:
+Active repair bays with multiple vehicles in different states
+High reliance on DVIs, estimates, and technician notes
+Tools/Systems (current + implied):
+DVI software (inspection + photos)
+Shop management system (estimates, tickets)
+Scan tools (codes, live data images)
+Internal communication (verbal / ad hoc)
+Operational Reality:
+Fast-paced, interruption-heavy
+High dependency on human memory and consistency
+Quality varies by technician/advisor
+Problems We Are Trying To Solve
+Incomplete or inconsistent DVIs
+Missing estimate items despite clear inspection findings
+Poor documentation quality (vague notes, missing justification)
+Advisor overload → missed opportunities and errors
+Lack of clear job prioritization across vehicles
+Stalled vehicles with no updates
+Weak handoffs between technician → advisor → customer
+No standardized workflow for diagnostics or repairs
+Lack of system-level visibility into shop status
+Human-dependent decision making instead of system-supported
+Inconsistent inspection quality between technicians
+Lost revenue from unpresented or undocumented work
+Vision For The Solution
+
+A system that acts like a real-time operational co-pilot for the shop:
+
+Automatically compiles all vehicle data into structured assessments
+Flags missing estimate items based on findings
+Generates step-by-step technician workflows after approval
+Continuously tracks vehicle status and priority
+Prompts advisors with what to do next (follow-ups, approvals, gaps)
+Enforces inspection quality standards through structure and feedback
+
+Expected outcomes:
+
+Higher ARO
+Faster turnaround
+Fewer missed repairs
+Consistent documentation quality
+Reduced cognitive load on team
+Scalable, system-driven operations
+Current Workflow
+Vehicle arrives
+Technician performs inspection (DVI)
+Adds notes, photos, possibly inconsistent detail
+Technician may add codes or scan data
+Advisor reviews DVI manually
+Interprets findings
+Builds estimate (often incomplete)
+Customer contacted
+Approvals given (partial or full)
+Technician proceeds (often without structured workflow)
+Updates are inconsistent or delayed
+Vehicles may stall without visibility
+
+Weak Points:
+
+DVI quality varies
+Advisor must interpret everything manually
+No enforcement of estimate completeness
+No standardized repair workflow
+Poor visibility on stalled jobs
+No system-driven prioritization
+Desired Future Workflow
+Technician completes DVI using structured standards
+System compiles:
+Findings
+Codes
+Photos
+Notes
+→ into a structured assessment
+System cross-checks:
+Findings vs estimate
+→ flags missing items
+Advisor reviews pre-organized output instead of raw DVI
+Customer approval obtained
+System generates:
+Step-by-step repair/diagnostic workflow for technician
+System assigns priority level (P1–P4)
+System tracks:
+Last update timestamps
+Stalled vehicles
+During bay walk-through:
+System generates checklist of required updates/actions
+Continuous feedback loop improves inspection and estimate quality
+Key Features Discussed
+1. Assessment Engine
+Aggregates all vehicle data into structured format
+Normalizes technician input into usable output
+2. Estimate Audit System
+Compares DVI findings vs estimate lines
+Flags missing or incomplete items
+3. Workflow Builder
+Generates technician step-by-step instructions after approval
+Supports both diagnostics and repairs
+4. Priority System (P1–P4)
+Dynamic prioritization based on multiple factors
+5. Bay Walk-Through Assistant
+Generates checklist:
+Vehicles without updates in 24h
+Pending actions
+Missing information
+6. Update Tracking
+Tracks last update timestamp per vehicle
+Flags stale jobs
+7. Advisor Coaching Layer
+Suggests:
+Next steps
+Missing items
+Follow-ups
+8. Inspection Quality Enforcement
+Standardizes DVI expectations
+Encourages consistent documentation
+Must-Have Requirements
+Structured DVI-to-assessment conversion
+Estimate completeness validation
+Priority classification (P1–P4)
+Technician workflow generation
+Update tracking (time-based)
+Missing information detection
+Advisor guidance prompts
+Consistent formatting of outputs
+Ability to handle multiple active vehicles
+Nice-To-Have Ideas
+Scoring system for DVI quality
+Technician performance tracking
+Predictive recommendations (based on history)
+Integration with parts ordering
+Automated customer communication suggestions
+Voice-to-note structuring
+Real-time dashboard UI
+Mobile-friendly workflow interface
+Priority Logic
+P1 (Critical)
+Safety issues
+Vehicle disabled / cannot leave
+High-value jobs ready to proceed
+Waiting on immediate action
+P2 (High)
+Approved work ready to start
+Diagnostics in progress
+Time-sensitive jobs
+P3 (Medium)
+Awaiting approval
+Partial approvals
+Non-critical repairs
+P4 (Low)
+No recent updates
+Waiting on parts (long lead)
+Deferred work
+
+Additional Factors:
+
+Customer urgency
+Revenue impact
+Workflow blocking dependencies
+Time since last update
+DVI / Inspection Standards
+
+“Good” DVI includes:
+
+Clear, specific notes (not vague)
+Photos showing actual issue
+Supporting evidence (codes, measurements)
+Explanation of why it matters
+Clear identification of severity
+
+Avoid:
+
+Generic phrases (“needs attention”)
+Missing justification
+No photos or unclear photos
+Estimate / Audit Standards
+
+“Good” estimate includes:
+
+Every DVI finding mapped to a line item
+No missing recommended repairs
+Clear separation:
+Immediate vs future work
+Labor + parts fully accounted for
+
+System should flag:
+
+Findings with no estimate line
+Partial or unclear repairs
+Missing diagnostic steps
+Advisor Guidance / Coaching Logic
+
+System should prompt:
+
+“This finding is not on the estimate”
+“Vehicle has not been updated in 24 hours”
+“Approval received — generate workflow”
+“Follow up with customer”
+“Technician notes lack justification”
+
+Tone:
+
+Direct, actionable, not verbose
+Data Sources And Systems
+DVI platform → inspections, photos, notes
+Shop management system → estimates, tickets
+Scan tools → diagnostic data
+Technician inputs → notes, findings
+Advisor inputs → approvals, estimates
+Internal tracking → vehicle status, timestamps
+Automation Opportunities
+Immediate
+DVI → structured assessment
+Estimate gap detection
+Priority assignment
+Mid-Term
+Workflow generation
+Update tracking alerts
+Bay walk checklist generation
+Long-Term
+Predictive recommendations
+Performance analytics
+Full shop dashboard
+Short-Term Plan
+Build assessment generator
+Build estimate audit logic
+Implement priority system
+Create structured output templates
+Mid-Term Plan
+Add workflow builder
+Add update tracking + alerts
+Add advisor coaching prompts
+Long-Term Vision
+Fully system-driven shop operations
+Minimal reliance on human memory
+Scalable multi-location system
+Integration with business analytics + real estate expansion
+Important Prompts, Instructions, Or Frameworks
+
+Master behaviors:
+
+Always compile ALL inputs into structured assessment
+Always use most recent updates
+Always identify missing items
+Always generate actionable outputs
+
+Bay Walk Prompt Logic:
+
+“Check if vehicle X has been updated today”
+“If not, update status or findings”
+Good Examples
+DVI note:
+“Front brake pads at 2mm, rotor scoring visible, recommend replacement due to safety risk”
+Assessment:
+Organized by system (brakes, engine, etc.)
+Workflow:
+Step-by-step repair instructions post-approval
+Bad Examples / Failure Patterns
+“Brakes worn” (no detail)
+Missing estimate items despite clear findings
+No updates for 1+ days
+Technician uploads photos without explanation
+Advisor misses upsell opportunities
+Decisions Already Made
+Priority system will use P1–P4
+System must enforce structured outputs
+Workflow generation happens AFTER approval
+Update tracking is required
+System acts as assistant, not replacement
+Open Questions
+Which DVI platform will be primary integration?
+How will data be ingested (manual vs API)?
+UI vs text-based system first?
+How to handle technician adoption/training?
+Assumptions
+Technicians will continue using existing DVI tools
+Advisors will review outputs before customer communication
+Data quality improves with structure + feedback
+Initial system may be semi-manual
+Recommended Next Steps For Codex
+Build data model:
+Vehicle
+Inspection findings
+Estimate lines
+Status
+Priority
+Create assessment generator function
+Build estimate audit logic:
+Compare findings vs estimate
+Implement priority classification engine
+Create output templates:
+Assessment
+Workflow
+Priority list
+Add timestamp tracking for updates
+Build-Relevant Details
+Entities
+Vehicle
+Job/RO
+Inspection Item
+Estimate Line
+Status
+Priority
+Update Timestamp
+States
+In inspection
+Awaiting approval
+Approved
+In progress
+Waiting (parts/customer)
+Completed
+Logic Conditions
+If finding exists AND no estimate line → flag
+If last update > 24h → alert
+If approval received → generate workflow
+UI Concepts
+Vehicle dashboard (priority-sorted)
+Status indicators (color-coded)
+Missing items alerts
+Update timers
+Notifications
+“No update in 24h”
+“Estimate incomplete”
+“Workflow ready”
+Scoring Inputs (future)
+DVI completeness
+Estimate completeness
+Update frequency
