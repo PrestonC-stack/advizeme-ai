@@ -8,12 +8,12 @@ export const starterTickets: TicketSummary[] = [
     vehicleLabel: "2007 Ford F-150 XLT",
     location: "Country Club",
     source: "Tekmetric",
-    status: "Advisor Estimate",
+    status: "Estimate Build",
     priority: "P1",
     advisor: "Mitch",
     technician: "Eugene",
     lastActivity: "15 min ago",
-    nextAction: "Confirm estimate completeness and call customer"
+    nextAction: "Review findings, lock estimate, and call customer"
   },
   {
     id: "ticket-13389",
@@ -22,26 +22,26 @@ export const starterTickets: TicketSummary[] = [
     vehicleLabel: "2010 Nissan Murano",
     location: "Country Club",
     source: "Tekmetric",
-    status: "Technical Advisor",
+    status: "Technical Review",
     priority: "P2",
     advisor: "Mitch",
     technician: "Luis",
     lastActivity: "43 min ago",
-    nextAction: "Review authorization and move to next job step"
+    nextAction: "Finish technical review and hand off to advisor"
   },
   {
     id: "ticket-apache-7179",
     roNumber: "RO#7179",
-    customerName: "William Charles",
-    vehicleLabel: "Tilt deck trailer hubs",
+    customerName: "Maria Ortega",
+    vehicleLabel: "2012 Chevrolet Silverado 1500",
     location: "Apache",
-    source: "Trello",
-    status: "In-Shop Servicing",
+    source: "AutoFlow",
+    status: "Waiting Parts",
     priority: "P2",
     advisor: "Preston",
     technician: "TC",
     lastActivity: "2 hr ago",
-    nextAction: "Check customer touchpoint and confirm parts path"
+    nextAction: "Confirm parts ETA and stage a backup job for the tech"
   }
 ];
 

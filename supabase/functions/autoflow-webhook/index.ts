@@ -84,6 +84,19 @@ type DviAnalysis = {
   missingMeasurements: boolean;
   safetyFlag: boolean;
   findingsSummary: string;
+  customerConcern: string | null;
+  extractedFindings: string[];
+  suggestedJobs: Array<{
+    title: string;
+    priority: "Now" | "Soon" | "Later" | "Monitor";
+    category: "Confirmed Repair" | "Diagnostic / Not Yet Confirmed" | "Maintenance" | "Monitor";
+    labor: string;
+    parts: string;
+    roNote: string;
+    requiredRelatedItems: string;
+    recommendedAddOns: string;
+    laborOverlapNotes: string;
+  }>;
   metrics: {
     noteCount: number;
     photoCount: number;
@@ -211,6 +224,7 @@ async function normalizeAutoflowEvent(
         advisor_id: advisorRes.data?.id ?? null,
         technician_id: techRes.data?.id ?? null,
         summary: payload.text ?? `AutoFlow event: ${eventType}`,
+        contacted_today: false,
         last_activity_at: eventAt,
         metadata: {
           autoflow_ticket_id: payload.ticket?.id ?? null,
@@ -248,6 +262,18 @@ async function normalizeAutoflowEvent(
       });
     }
 
+    await syncOperationalState(supabase, {
+      ticketId: ticketRes.data.id,
+      advisorId: advisorRes.data?.id ?? null,
+      technicianId: techRes.data?.id ?? null,
+      invoice,
+      payload,
+      status,
+      eventType,
+      eventAt,
+      analysis: null
+    });
+
     return { ok: true, note: `Normalized status_update for RO ${invoice}` };
   }
 
@@ -274,6 +300,18 @@ async function normalizeAutoflowEvent(
         detail: dviFetch.note ?? "AutoFlow DVI signoff arrived, but the full DVI could not be fetched."
       });
 
+      await syncOperationalState(supabase, {
+        ticketId: ticketRes.data.id,
+        advisorId: advisorRes.data?.id ?? null,
+        technicianId: techRes.data?.id ?? null,
+        invoice,
+        payload,
+        status,
+        eventType,
+        eventAt,
+        analysis: null
+      });
+
       return { ok: true, note: `Stored ${eventType} for RO ${invoice}; DVI fetch failed` };
     }
 
@@ -288,13 +326,45 @@ async function normalizeAutoflowEvent(
       missing_photos: analysis.missingPhotos,
       missing_measurements: analysis.missingMeasurements,
       safety_flag: analysis.safetyFlag,
+      complaint_verified: Boolean(analysis.customerConcern),
+      photo_present: !analysis.missingPhotos,
+      photo_useful: !analysis.missingPhotos,
+      recommendation_specific: analysis.metrics.recommendationCount > 0,
+      estimate_ready: analysis.reviewStatus === "acceptable",
+      missing_proof: analysis.reviewStatus !== "acceptable",
       findings_summary: analysis.findingsSummary,
+      likely_follow_up_question:
+        analysis.reviewStatus === "acceptable"
+          ? null
+          : "What proof or test result supports this recommendation?",
+      likely_customer_objection:
+        analysis.reviewStatus === "acceptable"
+          ? null
+          : "Customer may push back if the recommendation is not supported clearly.",
+      technician_feedback:
+        analysis.reviewStatus === "acceptable"
+          ? "Inspection support is strong enough to move forward."
+          : "Tighten the proof, measurements, or notes before expecting a clean estimate handoff.",
+      advisor_feedback:
+        analysis.reviewStatus === "acceptable"
+          ? "You can build from this DVI, but keep the customer concern and safety items leading the conversation."
+          : "Do not oversell this yet. Ask for stronger support or sell diagnostic time first.",
+      estimate_builder_feedback:
+        analysis.suggestedJobs.length > 0
+          ? `Suggested job blocks identified: ${analysis.suggestedJobs.map((job) => job.title).join("; ")}`
+          : "Keep this in review mode until the repair path is clearer.",
+      qc_feedback: analysis.safetyFlag
+        ? "Safety-related findings were detected. Preserve the proof and verify final closeout carefully."
+        : "No major QC-specific concern surfaced from the DVI alone.",
       reviewer_note: JSON.stringify({
         fetched_at: new Date().toISOString(),
         callback_endpoint: payload.event?.callback_endpoint ?? null,
         api_source: dviFetch.url ?? null,
         metrics: analysis.metrics,
-        invoice
+        invoice,
+        customer_concern: analysis.customerConcern,
+        extracted_findings: analysis.extractedFindings,
+        suggested_jobs: analysis.suggestedJobs
       })
     });
 
@@ -334,6 +404,18 @@ async function normalizeAutoflowEvent(
       });
     }
 
+    await syncOperationalState(supabase, {
+      ticketId: ticketRes.data.id,
+      advisorId: advisorRes.data?.id ?? null,
+      technicianId: techRes.data?.id ?? null,
+      invoice,
+      payload,
+      status,
+      eventType,
+      eventAt,
+      analysis
+    });
+
     return {
       ok: true,
       note: `Fetched and reviewed DVI for RO ${invoice} (${analysis.reviewStatus}, score ${analysis.qualityScore})`
@@ -362,6 +444,18 @@ async function normalizeAutoflowEvent(
       detail: `DVI sent by ${sendMethod}${recipient ? ` to ${recipient}` : ""}.`
     });
 
+    await syncOperationalState(supabase, {
+      ticketId: ticketRes.data.id,
+      advisorId: advisorRes.data?.id ?? null,
+      technicianId: techRes.data?.id ?? null,
+      invoice,
+      payload,
+      status,
+      eventType,
+      eventAt,
+      analysis: null
+    });
+
     return { ok: true, note: `Normalized dvi_sent for RO ${invoice}` };
   }
 
@@ -384,6 +478,18 @@ async function normalizeAutoflowEvent(
       detail: "Customer opened the DVI. This is a good time for advisor follow-up."
     });
 
+    await syncOperationalState(supabase, {
+      ticketId: ticketRes.data.id,
+      advisorId: advisorRes.data?.id ?? null,
+      technicianId: techRes.data?.id ?? null,
+      invoice,
+      payload,
+      status,
+      eventType,
+      eventAt,
+      analysis: null
+    });
+
     return { ok: true, note: `Normalized dvi_viewed for RO ${invoice}` };
   }
 
@@ -403,6 +509,13 @@ async function normalizeAutoflowEvent(
 
     if (deliveryStatus === "delivered") {
       await resolveAlertIfOpen(supabase, ticketRes.data.id, "awaiting_follow_up");
+      await logTicketContact(supabase, {
+        ticketId: ticketRes.data.id,
+        employeeId: advisorRes.data?.id ?? null,
+        contactMethod: payload.event?.send_method ?? "message",
+        summary: payload.message?.message ?? `Outbound message delivered for RO ${invoice}.`,
+        contactAt: eventAt
+      });
     } else {
       await upsertOpenAlert(supabase, {
         ticketId: ticketRes.data.id,
@@ -412,6 +525,18 @@ async function normalizeAutoflowEvent(
         detail: `Message ${payload.event?.message_id ?? ""} is ${deliveryStatus} (${messageType}).`
       });
     }
+
+    await syncOperationalState(supabase, {
+      ticketId: ticketRes.data.id,
+      advisorId: advisorRes.data?.id ?? null,
+      technicianId: techRes.data?.id ?? null,
+      invoice,
+      payload,
+      status,
+      eventType,
+      eventAt,
+      analysis: null
+    });
 
     return { ok: true, note: `Normalized message_status for RO ${invoice}` };
   }
@@ -436,6 +561,26 @@ async function normalizeAutoflowEvent(
       severity: "medium",
       title: `${invoice} customer replied`,
       detail: payload.message?.message ?? "Inbound message received."
+    });
+
+    await logTicketContact(supabase, {
+      ticketId: ticketRes.data.id,
+      employeeId: null,
+      contactMethod: "inbound_message",
+      summary: payload.message?.message ?? "Inbound customer reply received.",
+      contactAt: eventAt
+    });
+
+    await syncOperationalState(supabase, {
+      ticketId: ticketRes.data.id,
+      advisorId: advisorRes.data?.id ?? null,
+      technicianId: techRes.data?.id ?? null,
+      invoice,
+      payload,
+      status,
+      eventType,
+      eventAt,
+      analysis: null
     });
 
     return { ok: true, note: `Normalized inbound_message for RO ${invoice}` };
@@ -463,6 +608,18 @@ async function normalizeAutoflowEvent(
       detail: "Customer approved work. Move the ticket forward promptly."
     });
 
+    await syncOperationalState(supabase, {
+      ticketId: ticketRes.data.id,
+      advisorId: advisorRes.data?.id ?? null,
+      technicianId: techRes.data?.id ?? null,
+      invoice,
+      payload,
+      status,
+      eventType,
+      eventAt,
+      analysis: null
+    });
+
     return { ok: true, note: `Normalized ro_approval for RO ${invoice}` };
   }
 
@@ -483,6 +640,18 @@ async function normalizeAutoflowEvent(
       severity: "low",
       title: `${invoice} appointment updated`,
       detail: payload.text ?? `AutoFlow appointment event: ${eventType}.`
+    });
+
+    await syncOperationalState(supabase, {
+      ticketId: ticketRes.data.id,
+      advisorId: advisorRes.data?.id ?? null,
+      technicianId: techRes.data?.id ?? null,
+      invoice,
+      payload,
+      status,
+      eventType,
+      eventAt,
+      analysis: null
     });
 
     return { ok: true, note: `Normalized ${eventType} for RO ${invoice}` };
@@ -507,6 +676,18 @@ async function normalizeAutoflowEvent(
       detail: "Technician signed off the work order. Advisor review may be needed."
     });
 
+    await syncOperationalState(supabase, {
+      ticketId: ticketRes.data.id,
+      advisorId: advisorRes.data?.id ?? null,
+      technicianId: techRes.data?.id ?? null,
+      invoice,
+      payload,
+      status,
+      eventType,
+      eventAt,
+      analysis: null
+    });
+
     return { ok: true, note: `Normalized wo_signoff for RO ${invoice}` };
   }
 
@@ -518,6 +699,18 @@ async function normalizeAutoflowEvent(
     actor_staff_id: advisorRes.data?.id ?? null,
     event_value: status ?? eventType,
     payload
+  });
+
+  await syncOperationalState(supabase, {
+    ticketId: ticketRes.data.id,
+    advisorId: advisorRes.data?.id ?? null,
+    technicianId: techRes.data?.id ?? null,
+    invoice,
+    payload,
+    status,
+    eventType,
+    eventAt,
+    analysis: null
   });
 
   return { ok: true, note: `Stored generic event ${eventType} for RO ${invoice}` };
@@ -543,6 +736,376 @@ function json(payload: unknown, status = 200) {
     status,
     headers: { "Content-Type": "application/json" }
   });
+}
+
+async function syncOperationalState(
+  supabase: ReturnType<typeof createClient>,
+  input: {
+    ticketId: string;
+    advisorId: string | null;
+    technicianId: string | null;
+    invoice: string;
+    payload: AutoflowPayload | Record<string, unknown>;
+    status: string | null;
+    eventType: string;
+    eventAt: string;
+    analysis: DviAnalysis | null;
+  }
+) {
+  const stage = deriveOperationalStage(input.status, input.eventType);
+  const blocker = deriveOperationalBlocker(stage, input.analysis, input.eventType, input.status);
+  const nextBestAction = deriveOperationalNextAction(stage, input.analysis, input.eventType);
+  const nextCheckpoint = deriveOperationalCheckpoint(stage, input.analysis);
+  const nextHandoffOwner = deriveNextHandoffOwner(stage);
+  const dispatchReady = isDispatchReady(stage, input.analysis, input.eventType);
+  const dispatchReadyReason = dispatchReady
+    ? "Approved, aligned, and ready for controlled dispatch."
+    : "Approved is not enough yet. Close the proof, plan, or parts gaps first.";
+  const estimateReady = isEstimateReady(stage, input.analysis);
+  const estimateReadyReason = estimateReady
+    ? "Support is strong enough to build a clean estimate."
+    : "Keep this in review or sell diagnostic time before going deeper.";
+  const promiseCandidate = extractPromiseCandidate(input.payload, input.eventAt);
+  const waitingPartsPlan = buildWaitingPartsPlan(input.payload, stage, input.eventAt);
+
+  await supabase
+    .from("tickets")
+    .update({
+      current_stage: stage,
+      current_blocker: blocker,
+      next_best_action: nextBestAction,
+      next_checkpoint: nextCheckpoint,
+      checkpoint_owner_role: nextHandoffOwner,
+      checkpoint_due_at: promiseCandidate,
+      next_handoff_owner: nextHandoffOwner,
+      dispatch_ready: dispatchReady,
+      dispatch_ready_reason: dispatchReadyReason,
+      estimate_ready: estimateReady,
+      estimate_ready_reason: estimateReadyReason,
+      approx_next_stage_eta: promiseCandidate,
+      approx_completion_eta: buildCompletionEta(stage, input.eventAt, promiseCandidate),
+      waiting_parts_vendor: waitingPartsPlan.vendor,
+      waiting_parts_eta: waitingPartsPlan.eta,
+      waiting_parts_wait_mode: waitingPartsPlan.waitMode,
+      waiting_parts_other_work_possible: waitingPartsPlan.otherWorkPossible,
+      backup_task_staged: waitingPartsPlan.backupTaskStaged,
+      backup_task_summary: waitingPartsPlan.backupTaskSummary,
+      parts_follow_up_due_at: waitingPartsPlan.followUpDueAt,
+      parts_follow_up_owner_id: input.advisorId,
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", input.ticketId);
+
+  await upsertCheckpoint(supabase, {
+    ticketId: input.ticketId,
+    checkpointType: "next_handoff",
+    checkpointText: nextCheckpoint,
+    ownerRole: nextHandoffOwner,
+    ownerStaffId: nextHandoffOwner.includes("Technician") ? input.technicianId : input.advisorId,
+    stageName: stage,
+    dueAt: promiseCandidate
+  });
+
+  await upsertActionItem(supabase, {
+    ticketId: input.ticketId,
+    actionType: "next_best_action",
+    priorityLevel: derivePriorityLevel(stage, input.analysis, input.eventType),
+    queueGroup: deriveQueueGroup(stage),
+    title: `${input.invoice} next move`,
+    detail: nextBestAction,
+    ownerRole: nextHandoffOwner,
+    ownerStaffId: nextHandoffOwner.includes("Technician") ? input.technicianId : input.advisorId,
+    dueAt: promiseCandidate
+  });
+
+  await syncExceptionFlags(supabase, {
+    ticketId: input.ticketId,
+    invoice: input.invoice,
+    stage,
+    eventType: input.eventType,
+    eventAt: input.eventAt,
+    analysis: input.analysis,
+    dispatchReady,
+    waitingPartsPlan,
+    advisorId: input.advisorId,
+    technicianId: input.technicianId
+  });
+}
+
+async function upsertCheckpoint(
+  supabase: ReturnType<typeof createClient>,
+  input: {
+    ticketId: string;
+    checkpointType: string;
+    checkpointText: string;
+    ownerRole: string;
+    ownerStaffId: string | null;
+    stageName: string;
+    dueAt: string | null;
+  }
+) {
+  const existing = await supabase
+    .from("ticket_stage_checkpoints")
+    .select("id")
+    .eq("ticket_id", input.ticketId)
+    .eq("checkpoint_type", input.checkpointType)
+    .eq("status", "open")
+    .limit(1)
+    .maybeSingle();
+
+  if (existing.data?.id) {
+    await supabase
+      .from("ticket_stage_checkpoints")
+      .update({
+        checkpoint_text: input.checkpointText,
+        owner_role: input.ownerRole,
+        owner_staff_id: input.ownerStaffId,
+        stage_name: input.stageName,
+        due_at: input.dueAt,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", existing.data.id);
+    return;
+  }
+
+  await supabase.from("ticket_stage_checkpoints").insert({
+    ticket_id: input.ticketId,
+    checkpoint_type: input.checkpointType,
+    checkpoint_text: input.checkpointText,
+    owner_role: input.ownerRole,
+    owner_staff_id: input.ownerStaffId,
+    stage_name: input.stageName,
+    due_at: input.dueAt
+  });
+}
+
+async function upsertActionItem(
+  supabase: ReturnType<typeof createClient>,
+  input: {
+    ticketId: string;
+    actionType: string;
+    priorityLevel: string;
+    queueGroup: string;
+    title: string;
+    detail: string;
+    ownerRole: string;
+    ownerStaffId: string | null;
+    dueAt: string | null;
+  }
+) {
+  const existing = await supabase
+    .from("ticket_action_items")
+    .select("id")
+    .eq("ticket_id", input.ticketId)
+    .eq("action_type", input.actionType)
+    .eq("status", "open")
+    .limit(1)
+    .maybeSingle();
+
+  if (existing.data?.id) {
+    await supabase
+      .from("ticket_action_items")
+      .update({
+        priority_level: input.priorityLevel,
+        queue_group: input.queueGroup,
+        title: input.title,
+        detail: input.detail,
+        owner_role: input.ownerRole,
+        owner_staff_id: input.ownerStaffId,
+        due_at: input.dueAt
+      })
+      .eq("id", existing.data.id);
+    return;
+  }
+
+  await supabase.from("ticket_action_items").insert({
+    ticket_id: input.ticketId,
+    action_type: input.actionType,
+    priority_level: input.priorityLevel,
+    queue_group: input.queueGroup,
+    title: input.title,
+    detail: input.detail,
+    owner_role: input.ownerRole,
+    owner_staff_id: input.ownerStaffId,
+    due_at: input.dueAt
+  });
+}
+
+async function syncExceptionFlags(
+  supabase: ReturnType<typeof createClient>,
+  input: {
+    ticketId: string;
+    invoice: string;
+    stage: string;
+    eventType: string;
+    eventAt: string;
+    analysis: DviAnalysis | null;
+    dispatchReady: boolean;
+    waitingPartsPlan: ReturnType<typeof buildWaitingPartsPlan>;
+    advisorId: string | null;
+    technicianId: string | null;
+  }
+) {
+  if (input.analysis && input.analysis.reviewStatus !== "acceptable") {
+    await upsertExceptionFlag(supabase, {
+      ticketId: input.ticketId,
+      flagType: "dvi_weak_support",
+      severity: input.analysis.reviewStatus === "not_acceptable" ? "high" : "medium",
+      title: "Weak DVI likely to bounce back",
+      detail: input.analysis.findingsSummary,
+      ownerRole: "Technician / Advisor",
+      ownerStaffId: input.technicianId ?? input.advisorId
+    });
+  } else {
+    await resolveExceptionFlag(supabase, input.ticketId, "dvi_weak_support");
+  }
+
+  if (input.stage === "Ready to Dispatch" && !input.dispatchReady) {
+    await upsertExceptionFlag(supabase, {
+      ticketId: input.ticketId,
+      flagType: "dispatch_not_ready",
+      severity: "high",
+      title: "Approved job not truly ready to dispatch",
+      detail: `RO ${input.invoice} still has planning, proof, or parts gaps before dispatch.`,
+      ownerRole: "Advisor / Dispatch",
+      ownerStaffId: input.advisorId
+    });
+  } else {
+    await resolveExceptionFlag(supabase, input.ticketId, "dispatch_not_ready");
+  }
+
+  if (input.stage === "Waiting Parts" && !input.waitingPartsPlan.backupTaskStaged) {
+    await upsertExceptionFlag(supabase, {
+      ticketId: input.ticketId,
+      flagType: "no_backup_task_staged",
+      severity: "medium",
+      title: "No next queued task",
+      detail: `RO ${input.invoice} is waiting on parts and does not show a backup task for the technician.`,
+      ownerRole: "Advisor / Dispatch",
+      ownerStaffId: input.advisorId
+    });
+  } else {
+    await resolveExceptionFlag(supabase, input.ticketId, "no_backup_task_staged");
+  }
+
+  if (input.stage === "Waiting Parts" && !input.waitingPartsPlan.followUpDueAt) {
+    await upsertExceptionFlag(supabase, {
+      ticketId: input.ticketId,
+      flagType: "waiting_parts_no_followup",
+      severity: "medium",
+      title: "Waiting on parts but no follow-up note",
+      detail: `RO ${input.invoice} needs an owner and next follow-up timing while parts are pending.`,
+      ownerRole: "Parts / Advisor",
+      ownerStaffId: input.advisorId
+    });
+  } else {
+    await resolveExceptionFlag(supabase, input.ticketId, "waiting_parts_no_followup");
+  }
+
+  if (input.eventType === "ro_approval" && input.technicianId === null) {
+    await upsertExceptionFlag(supabase, {
+      ticketId: input.ticketId,
+      flagType: "assignment_mismatch",
+      severity: "high",
+      title: "Approved job with missing dispatch clarity",
+      detail: `RO ${input.invoice} was approved without a clear technician assignment.`,
+      ownerRole: "Advisor / Management",
+      ownerStaffId: input.advisorId
+    });
+  } else {
+    await resolveExceptionFlag(supabase, input.ticketId, "assignment_mismatch");
+  }
+}
+
+async function upsertExceptionFlag(
+  supabase: ReturnType<typeof createClient>,
+  input: {
+    ticketId: string;
+    flagType: string;
+    severity: string;
+    title: string;
+    detail: string;
+    ownerRole: string;
+    ownerStaffId: string | null;
+  }
+) {
+  const existing = await supabase
+    .from("ticket_exception_flags")
+    .select("id")
+    .eq("ticket_id", input.ticketId)
+    .eq("flag_type", input.flagType)
+    .eq("status", "open")
+    .limit(1)
+    .maybeSingle();
+
+  if (existing.data?.id) {
+    await supabase
+      .from("ticket_exception_flags")
+      .update({
+        severity: input.severity,
+        title: input.title,
+        detail: input.detail,
+        owner_role: input.ownerRole,
+        owner_staff_id: input.ownerStaffId,
+        detected_at: new Date().toISOString()
+      })
+      .eq("id", existing.data.id);
+    return;
+  }
+
+  await supabase.from("ticket_exception_flags").insert({
+    ticket_id: input.ticketId,
+    flag_type: input.flagType,
+    severity: input.severity,
+    title: input.title,
+    detail: input.detail,
+    owner_role: input.ownerRole,
+    owner_staff_id: input.ownerStaffId
+  });
+}
+
+async function resolveExceptionFlag(
+  supabase: ReturnType<typeof createClient>,
+  ticketId: string,
+  flagType: string
+) {
+  await supabase
+    .from("ticket_exception_flags")
+    .update({
+      status: "resolved",
+      resolved_at: new Date().toISOString()
+    })
+    .eq("ticket_id", ticketId)
+    .eq("flag_type", flagType)
+    .eq("status", "open");
+}
+
+async function logTicketContact(
+  supabase: ReturnType<typeof createClient>,
+  input: {
+    ticketId: string;
+    employeeId: string | null;
+    contactMethod: string;
+    summary: string;
+    contactAt: string;
+  }
+) {
+  await supabase.from("ticket_contacts").insert({
+    ticket_id: input.ticketId,
+    employee_id: input.employeeId,
+    contact_method: input.contactMethod,
+    summary: input.summary,
+    contact_at: input.contactAt
+  });
+
+  await supabase
+    .from("tickets")
+    .update({
+      contacted_today: true,
+      last_contact_method: input.contactMethod,
+      last_customer_update_at: input.contactAt
+    })
+    .eq("id", input.ticketId);
 }
 
 async function upsertOpenAlert(
@@ -600,6 +1163,218 @@ async function resolveAlertIfOpen(
     .eq("ticket_id", ticketId)
     .eq("alert_type", alertType)
     .eq("status", "open");
+}
+
+function deriveOperationalStage(status: string | null, eventType: string) {
+  const normalized = (status ?? "").toLowerCase();
+
+  if (eventType === "appointment_create" || eventType === "appointment_update" || eventType === "appointment_confirmed") {
+    return "Check-In / Interview";
+  }
+  if (eventType === "dvi_signoff" || eventType === "dvi_signoff_update") {
+    return "Technical Review";
+  }
+  if (eventType === "dvi_sent" || eventType === "dvi_viewed") {
+    return "Waiting Approval";
+  }
+  if (eventType === "ro_approval") {
+    return "Ready to Dispatch";
+  }
+  if (eventType === "wo_signoff") {
+    return "Technical Signoff";
+  }
+
+  if (normalized.includes("pickup") || normalized.includes("closed")) return "Pickup / Closed";
+  if (normalized.includes("ready") && normalized.includes("contact")) return "Ready / Customer Contacted";
+  if (normalized.includes("technical signoff")) return "Technical Signoff";
+  if (normalized.includes("qc") || normalized.includes("verification")) return "QC / Verification";
+  if (normalized.includes("service") || normalized.includes("repair")) return "In Service";
+  if (normalized.includes("dispatch")) return "Ready to Dispatch";
+  if (normalized.includes("parts")) return "Waiting Parts";
+  if (normalized.includes("approval")) return "Waiting Approval";
+  if (normalized.includes("estimate")) return "Estimate Build";
+  if (normalized.includes("technical review") || normalized.includes("technical advisor")) return "Technical Review";
+  if (normalized.includes("dvi") || normalized.includes("inspect") || normalized.includes("verify")) return "DVI / Verify Concern";
+  return "Check-In / Interview";
+}
+
+function deriveOperationalBlocker(stage: string, analysis: DviAnalysis | null, eventType: string, status: string | null) {
+  if (analysis && analysis.reviewStatus !== "acceptable") {
+    return "Weak DVI support needs cleanup before estimate build.";
+  }
+  if (stage === "Waiting Parts") {
+    return "Parts ETA and follow-up plan are controlling the next move.";
+  }
+  if (stage === "Waiting Approval") {
+    return "Customer decision or advisor follow-up is still open.";
+  }
+  if (stage === "Ready to Dispatch" && eventType === "ro_approval") {
+    return "Dispatch plan still needs confirmation after approval.";
+  }
+  if (stage === "Technical Signoff") {
+    return "Final handoff, reconciliation, and QC review need closure.";
+  }
+  return status ?? "No major blocker logged";
+}
+
+function deriveOperationalNextAction(stage: string, analysis: DviAnalysis | null, eventType: string) {
+  if (analysis && analysis.reviewStatus !== "acceptable") {
+    return "Get stronger proof or sell diagnostic time before going deeper.";
+  }
+
+  switch (stage) {
+    case "Check-In / Interview":
+      return "Lock the concern, assign the first checkpoint, and stage the intake cleanly.";
+    case "DVI / Verify Concern":
+      return "Finish the DVI and verify the concern before deeper work starts.";
+    case "Technical Review":
+      return "Organize the findings and hand the advisor a clean next step.";
+    case "Estimate Build":
+      return "Build the estimate with concern first, safety second, and no missing support.";
+    case "Waiting Approval":
+      return "Call or text the customer now instead of waiting for them to reach out first.";
+    case "Waiting Parts":
+      return "Confirm ETA, owner, and backup task so the tech does not stall.";
+    case "Ready to Dispatch":
+      return eventType === "ro_approval"
+        ? "Confirm parts, plan, and direction before dispatching."
+        : "Dispatch with a clear plan and duration.";
+    case "In Service":
+      return "Track the next checkpoint and catch any scope change before it snowballs.";
+    case "QC / Verification":
+      return "Run forced-pause QC and touched-area checks before closeout.";
+    case "Technical Signoff":
+      return "Capture notes, reconcile parts, and hand the RO back cleanly.";
+    case "Ready / Customer Contacted":
+      return "Confirm the customer contact and lock the pickup timing.";
+    default:
+      return "Review the RO and assign the next real owner.";
+  }
+}
+
+function deriveOperationalCheckpoint(stage: string, analysis: DviAnalysis | null) {
+  if (analysis && analysis.reviewStatus !== "acceptable") {
+    return "When the proof is stronger or diag is sold, come get me.";
+  }
+
+  switch (stage) {
+    case "Check-In / Interview":
+      return "When intake is complete, come get me.";
+    case "DVI / Verify Concern":
+      return "When the concern is verified and DVI is complete, come get me.";
+    case "Technical Review":
+      return "When the review is organized into estimate-ready findings, come get me.";
+    case "Estimate Build":
+      return "When the estimate is ready and major items are on the table, come get me.";
+    case "Waiting Approval":
+      return "When the customer answers yes, no, or questions, come get me.";
+    case "Waiting Parts":
+      return "When ETA changes or parts land, come get me.";
+    case "Ready to Dispatch":
+      return "When plan, duration, and direction are all clear, release it.";
+    case "In Service":
+      return "When you hit the next scope checkpoint, come get me.";
+    case "QC / Verification":
+      return "When the forced-pause checks are done, come get me.";
+    case "Technical Signoff":
+      return "When notes and parts are reconciled, hand it back.";
+    default:
+      return "Assign the next checkpoint before this sits.";
+  }
+}
+
+function deriveNextHandoffOwner(stage: string) {
+  switch (stage) {
+    case "Check-In / Interview":
+    case "Estimate Build":
+    case "Waiting Approval":
+    case "Ready / Customer Contacted":
+      return "Advisor";
+    case "Waiting Parts":
+      return "Advisor / Parts";
+    case "DVI / Verify Concern":
+    case "Technical Review":
+    case "In Service":
+    case "QC / Verification":
+    case "Technical Signoff":
+      return "Technician / Lead";
+    case "Ready to Dispatch":
+      return "Advisor / Dispatch";
+    default:
+      return "Front counter";
+  }
+}
+
+function isDispatchReady(stage: string, analysis: DviAnalysis | null, eventType: string) {
+  if (stage !== "Ready to Dispatch") return false;
+  if (eventType === "ro_approval") return false;
+  if (analysis && analysis.reviewStatus !== "acceptable") return false;
+  return true;
+}
+
+function isEstimateReady(stage: string, analysis: DviAnalysis | null) {
+  if (analysis) {
+    return analysis.reviewStatus === "acceptable";
+  }
+  return stage === "Estimate Build" || stage === "Waiting Approval" || stage === "Ready to Dispatch";
+}
+
+function derivePriorityLevel(stage: string, analysis: DviAnalysis | null, eventType: string) {
+  if (eventType === "appointment_create" || stage === "Check-In / Interview") return "P1";
+  if (analysis && analysis.reviewStatus !== "acceptable") return "P2";
+  if (stage === "Waiting Parts" || stage === "Waiting Approval" || stage === "Ready / Customer Contacted") return "P4";
+  if (stage === "Ready to Dispatch" || stage === "In Service" || stage === "QC / Verification") return "P3";
+  return "P2";
+}
+
+function deriveQueueGroup(stage: string) {
+  if (stage === "Check-In / Interview" || stage === "Ready to Dispatch") return "Do Now";
+  if (stage === "DVI / Verify Concern" || stage === "Technical Review" || stage === "Estimate Build") return "Build Next";
+  return "Follow Up Now";
+}
+
+function extractPromiseCandidate(payload: AutoflowPayload | Record<string, unknown>, fallback: string) {
+  const summary = payload.text ?? "";
+  const direct = summary.match(/(\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(?::\d{2})?)/);
+  return direct ? direct[1].replace(" ", "T") : fallback;
+}
+
+function buildCompletionEta(stage: string, eventAt: string, promiseCandidate: string | null) {
+  if (promiseCandidate) return promiseCandidate;
+  const eta = new Date(eventAt);
+  const addHours =
+    stage === "In Service" ? 4 : stage === "QC / Verification" ? 1 : stage === "Technical Signoff" ? 1 : 2;
+  eta.setHours(eta.getHours() + addHours);
+  return eta.toISOString();
+}
+
+function buildWaitingPartsPlan(payload: AutoflowPayload | Record<string, unknown>, stage: string, eventAt: string) {
+  if (stage !== "Waiting Parts") {
+    return {
+      vendor: null,
+      eta: null,
+      waitMode: null,
+      otherWorkPossible: null,
+      backupTaskStaged: true,
+      backupTaskSummary: null,
+      followUpDueAt: null
+    };
+  }
+
+  const text = (payload.text ?? "").toLowerCase();
+  const etaMatch = (payload.text ?? "").match(/(\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(?::\d{2})?)/);
+  const followUp = new Date(eventAt);
+  followUp.setHours(followUp.getHours() + 4);
+
+  return {
+    vendor: text.includes("napa") ? "NAPA" : text.includes("dealer") ? "Dealer" : null,
+    eta: etaMatch ? etaMatch[1].replace(" ", "T") : null,
+    waitMode: text.includes("tomorrow") || text.includes("overnight") ? "long_wait" : "short_wait",
+    otherWorkPossible: false,
+    backupTaskStaged: false,
+    backupTaskSummary: "Load a backup task before the technician stalls on parts.",
+    followUpDueAt: followUp.toISOString()
+  };
 }
 
 function getAutoflowAuthHeader() {
@@ -671,6 +1446,17 @@ function analyzeDviContent(content: Record<string, unknown>): DviAnalysis {
     itemCount: 0
   };
 
+  const extractedFindings: string[] = [];
+  const addFinding = (text: string) => {
+    const normalized = text.replace(/\s+/g, " ").trim();
+    if (!normalized) {
+      return;
+    }
+    if (!extractedFindings.some((existing) => existing.toLowerCase() === normalized.toLowerCase())) {
+      extractedFindings.push(normalized);
+    }
+  };
+
   const walk = (value: unknown, parentKey = "") => {
     if (Array.isArray(value)) {
       if (parentKey.toLowerCase() === "dvis") {
@@ -699,6 +1485,9 @@ function analyzeDviContent(content: Record<string, unknown>): DviAnalysis {
 
           if (/(note|comment|description|details|cause|correction|finding|observ)/i.test(normalized) && !/^https?:\/\//i.test(text)) {
             metrics.noteCount += 1;
+            if (text.length > 8) {
+              addFinding(text);
+            }
           }
 
           if (/(photo|image|picture)/i.test(normalized) && /^https?:\/\//i.test(text)) {
@@ -711,6 +1500,7 @@ function analyzeDviContent(content: Record<string, unknown>): DviAnalysis {
 
           if (/(recommend|action|repair|replace|service|attention|urgent|immediate)/i.test(normalized) || /(recommend|repair|replace|service advised|attention needed)/i.test(text)) {
             metrics.recommendationCount += 1;
+            addFinding(text);
           }
         } else if (typeof child === "number") {
           if (/(measure|reading|thickness|pressure|voltage|spec|remaining|depth)/i.test(normalized)) {
@@ -727,8 +1517,12 @@ function analyzeDviContent(content: Record<string, unknown>): DviAnalysis {
 
   const additionalNotes = typeof content.additional_notes === "string" && content.additional_notes.trim().length > 0 ? 1 : 0;
   metrics.noteCount += additionalNotes;
+  if (typeof content.additional_notes === "string" && content.additional_notes.trim().length > 0) {
+    addFinding(content.additional_notes);
+  }
 
   const safetyFlag = JSON.stringify(content).toLowerCase().includes("safety");
+  const customerConcern = extractCustomerConcern(content);
   const missingNotes = metrics.noteCount === 0;
   const missingPhotos = metrics.photoCount === 0;
   const missingMeasurements = metrics.measurementCount === 0;
@@ -753,6 +1547,8 @@ function analyzeDviContent(content: Record<string, unknown>): DviAnalysis {
   if (metrics.itemCount > 0) notes.push(`${metrics.itemCount} inspection item groups detected`);
   if (safetyFlag) notes.push("contains safety language");
 
+  const suggestedJobs = buildSuggestedJobs(extractedFindings, customerConcern, safetyFlag);
+
   return {
     qualityScore,
     reviewStatus,
@@ -761,6 +1557,133 @@ function analyzeDviContent(content: Record<string, unknown>): DviAnalysis {
     missingMeasurements,
     safetyFlag,
     findingsSummary: notes.length > 0 ? notes.join("; ") : "DVI analyzed with no strong signals detected.",
+    customerConcern,
+    extractedFindings,
+    suggestedJobs,
     metrics
   };
+}
+
+function extractCustomerConcern(content: Record<string, unknown>) {
+  const raw = content.reason_vehicle_is_here;
+
+  if (Array.isArray(raw)) {
+    const flattened = raw
+      .flatMap((item) => {
+        if (typeof item === "string") return [item];
+        if (item && typeof item === "object") {
+          return Object.values(item as Record<string, unknown>).filter((value): value is string => typeof value === "string");
+        }
+        return [];
+      })
+      .map((value) => value.trim())
+      .filter(Boolean);
+
+    return flattened.length > 0 ? flattened.join("; ") : null;
+  }
+
+  return typeof raw === "string" && raw.trim() ? raw.trim() : null;
+}
+
+function buildSuggestedJobs(
+  findings: string[],
+  customerConcern: string | null,
+  safetyFlag: boolean
+): DviAnalysis["suggestedJobs"] {
+  const jobs: DviAnalysis["suggestedJobs"] = [];
+  const combined = findings.join(" || ").toLowerCase();
+
+  const pushJob = (job: DviAnalysis["suggestedJobs"][number]) => {
+    if (!jobs.some((existing) => existing.title === job.title)) {
+      jobs.push(job);
+    }
+  };
+
+  if (/(oil leak|timing cover|oil pan|power steering leak|leak source)/i.test(combined)) {
+    pushJob({
+      title: "Diagnose Fluid Leak Source",
+      priority: "Now",
+      category: "Diagnostic / Not Yet Confirmed",
+      labor: "Clean, inspect, and verify the exact fluid leak source before quoting final reseal work.",
+      parts: "Cleaner, dye, shop supplies as needed.",
+      roNote: "Leak is documented but exact source still needs confirmation before final repair is sold.",
+      requiredRelatedItems: "Sold diagnostic time and pre-approval before deeper teardown.",
+      recommendedAddOns: "Build confirmed reseal repair after source verification.",
+      laborOverlapNotes: "Do not let deeper leak tracing turn into unpaid tech time."
+    });
+  }
+
+  if (/(brake|pad|rotor|blued|heat damage|brake fluid)/i.test(combined)) {
+    pushJob({
+      title: "Front Brake Pads and Rotors",
+      priority: "Now",
+      category: "Confirmed Repair",
+      labor: "Replace worn front brake pads and damaged rotors, then complete final brake verification.",
+      parts: "Front pads, front rotors, brake fluid if flush is combined.",
+      roNote: "Brake findings support immediate service and should be presented as priority work.",
+      requiredRelatedItems: "Brake fluid flush if contamination is documented.",
+      recommendedAddOns: "Brake hardware kit and caliper slide service if supported.",
+      laborOverlapNotes: "Bundle brake flush with brake repair labor when sold together."
+    });
+  }
+
+  if (/(control arm|bushing|ball joint|shock|strut|suspension)/i.test(combined)) {
+    pushJob({
+      title: "Front Suspension / Control Arm Repair",
+      priority: safetyFlag ? "Now" : "Soon",
+      category: "Confirmed Repair",
+      labor: "Replace documented worn suspension components and verify handling afterward.",
+      parts: "Control arm assemblies, shocks/struts only if specifically documented.",
+      roNote: "Suspension wear is documented clearly enough to support estimate-ready repair planning.",
+      requiredRelatedItems: "Alignment after steering or suspension work.",
+      recommendedAddOns: "Bundle overlap-friendly front end items if they are documented.",
+      laborOverlapNotes: "Do not promise struts or related parts unless they were actually documented."
+    });
+  }
+
+  if (/(transmission fluid|atf|power steering fluid|fluid contaminated|dark fluid|maintenance)/i.test(combined)) {
+    pushJob({
+      title: "Fluid Service Based on Inspection Findings",
+      priority: "Later",
+      category: "Maintenance",
+      labor: "Perform the documented fluid service and verify level/condition afterward.",
+      parts: "Correct service fluid and any required washers or seals.",
+      roNote: "Fluid condition was documented as degraded or contaminated during inspection.",
+      requiredRelatedItems: "Use the correct fluid specification for the vehicle.",
+      recommendedAddOns: "Bundle with related approved repair if labor overlap exists.",
+      laborOverlapNotes: "Keep maintenance lines separate from confirmed repair unless overlap is real."
+    });
+  }
+
+  if (/(washer|reservoir)/i.test(combined)) {
+    pushJob({
+      title: "Replace Windshield Washer Reservoir",
+      priority: "Soon",
+      category: "Confirmed Repair",
+      labor: "Replace leaking washer reservoir and refill fluid.",
+      parts: "Washer reservoir, washer fluid.",
+      roNote: "Washer reservoir leak is documented and should stay in its own clean job line.",
+      requiredRelatedItems: "Washer fluid refill.",
+      recommendedAddOns: "Washer pump inspection if operation is questioned.",
+      laborOverlapNotes: "Do not bury this part inside an unrelated maintenance job."
+    });
+  }
+
+  if (jobs.length === 0) {
+    pushJob({
+      title: "Review DVI Findings and Build Next Step",
+      priority: safetyFlag ? "Now" : "Soon",
+      category: customerConcern ? "Diagnostic / Not Yet Confirmed" : "Monitor",
+      labor: customerConcern
+        ? "Use the current inspection notes to confirm whether the complaint is estimate-ready or still needs sold diagnostic time."
+        : "Review documented inspection findings and determine the next advisor action.",
+      parts: "None until the repair path is clearer.",
+      roNote: customerConcern ?? "Inspection produced findings, but the next repair path is still being organized.",
+      requiredRelatedItems: customerConcern ? "Protect tech time and get approval before deeper testing." : "None.",
+      recommendedAddOns: "None.",
+      laborOverlapNotes: "Keep this as a workflow placeholder until more exact repair detail is available."
+    });
+  }
+
+  return jobs;
 }
